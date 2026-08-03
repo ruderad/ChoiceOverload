@@ -28,16 +28,19 @@ Remaining work is limited to interface refinement and participant experience.
 ### Added
 - Final set of Mug images containing 130 images
 - added `.gitignore`
+
+
+## v0.1.2 - Preference Rating Task: very nice both aestheticly and technically
+
 - Implemented `P.Preference.Layout` to enable configuration of gepmetric layout of objects on screen
 - Implemented *ruler-shaped* scale
 - `normalizeScaleValue` utiliy function
 - Improved progress indicator
 - Scaled Images
 - `showMessageScreen` a genereic message render function
+- `Instructions`/`round-complete`/`task-complete` screens
+- `showBlankScreen` with configurable duration 
 
 ### planned
-- Instruction page
-- `round completed` screen after completion of first round 
-- `task completed` screen 
+
 - Practice round 
-- Fixation between each stimulus?
