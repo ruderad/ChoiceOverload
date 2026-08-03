@@ -1,0 +1,19 @@
+# MATLAB files
+*.asv
+*.m~
+
+# Experiment output
+Results/
+Data/
+Logs/
+
+# MATLAB generated data (adjust later if needed)
+*.mat
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/

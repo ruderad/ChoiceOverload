@@ -21,3 +21,9 @@ Remaining work is limited to interface refinement and participant experience.
 - Make it aesthetically pleasing
 - Response collection with mouse?
 - Use the new stimuli set
+
+## v0.1.1 - Updated Stimulus Set
+
+### Added
+- Final set of Mug images containing 130 images
+- added `.gitignore`
