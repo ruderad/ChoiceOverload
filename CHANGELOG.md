@@ -6,6 +6,7 @@
 - Modular experiment architecture
 - Three-structure design (`P`, `R`, `T`)
 - Initialization framework
+- Genereic renderer
 - Preference rating task
 - Psychtoolbox integration
 - Image loading
@@ -27,3 +28,16 @@ Remaining work is limited to interface refinement and participant experience.
 ### Added
 - Final set of Mug images containing 130 images
 - added `.gitignore`
+- Implemented `P.Preference.Layout` to enable configuration of gepmetric layout of objects on screen
+- Implemented *ruler-shaped* scale
+- `normalizeScaleValue` utiliy function
+- Improved progress indicator
+- Scaled Images
+- `showMessageScreen` a genereic message render function
+
+### planned
+- Instruction page
+- `round completed` screen after completion of first round 
+- `task completed` screen 
+- Practice round 
+- Fixation between each stimulus?
