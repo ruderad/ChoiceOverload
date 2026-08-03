@@ -5,7 +5,7 @@ function P = initializeParameters(root)
 %  ==============================================================
 
 P.Experiment.name    = 'Choice Overload';
-P.Experiment.version = '1.0';
+P.Experiment.version = '0.1.1';
 P.Experiment.date    = datestr(now,'yyyy-mm-dd');
 
 % Root directory of the experiment
@@ -50,6 +50,13 @@ files = files(idx);
 P.Images.files = fullfile({files.folder}, {files.name});
 P.Images.names = {files.name};
 P.Images.nImages = numel(P.Images.files);
+
+
+%% ==============================================================
+%  Timing
+%  ==============================================================
+
+P.Timing.blankITI = 0.100;    % seconds
 
 %% ==============================================================
 %  Message Screens
