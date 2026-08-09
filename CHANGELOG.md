@@ -32,10 +32,10 @@ Remaining work is limited to interface refinement and participant experience.
 
 ## v0.1.2 - Preference Rating Task: very nice both aestheticly and technically
 
-- Implemented `P.Preference.Layout` to enable configuration of gepmetric layout of objects on screen
+- Implemented `P.Preference.Layout` to enable configuration of geometric layout of objects on screen
 - Implemented *ruler-shaped* scale
 - `normalizeScaleValue` utiliy function
-- Improved progress indicator
+- Improved and then removed progress indicator 
 - Scaled Images
 - `showMessageScreen` a genereic message render function
 - `Instructions`/`round-complete`/`task-complete` screens
@@ -46,9 +46,17 @@ Remaining work is limited to interface refinement and participant experience.
 ### Planned
 
 - Practice round 
+- a system for getting the name and demographics of subjects
+- figuring how to store individual results
+- Persian instruction images
+	- utility function to load image messages
+	- making the instructions themselves
 - Curation of personalized choice sets
 
-## v0.1.3 - Choice Set Curation
+## v0.1.3 - Result Saving System
+- `collectSubjectInfo.m`: a pop-up window before the main task begins, asks for `subject ID`, `age`, `sex`, `handedness` and saves the results in `R.Subject`
+- `saveResults`: a function that saves the whole `R` struct on a `.mat` file named `SubjectID.mat`
+- 
 
-- implemented response collection with mouse 
+
 

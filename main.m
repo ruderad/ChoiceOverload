@@ -21,8 +21,18 @@ P = initializeParameters(root);
 R = initializeResults(P);
 
 %% ==============================================================
-%  Run Experiment
-%  ==============================================================
+% Collect Subject Info
+% ==============================================================
+
+[R.Subject, aborted] = collectSubjectInfo();
+
+if aborted
+    return;
+end
+
+%% ==============================================================
+% Run Experiment
+% ==============================================================
 
 try
 
@@ -32,6 +42,9 @@ try
     R = taskPreferenceRating(R, P, T);
 
     cleanupTask();
+
+    % Save results
+    saveResults(R, root);
 
 catch ME
 
