@@ -23,6 +23,6 @@ imageRect = CenterRectOnPoint( ...
 Screen('Close', textureID);
 
 % blank ITI
-showBlankScreen(P.Preference.Timing.blankITI, P, T);
+showBlankScreen(P.Timing.blankITI, P, T);
 
 end

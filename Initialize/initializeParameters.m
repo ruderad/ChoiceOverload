@@ -5,7 +5,7 @@ function P = initializeParameters(root)
 %  ==============================================================
 
 P.Experiment.name    = 'Choice Overload';
-P.Experiment.version = '0.1.1';
+P.Experiment.version = '0.1.3';
 P.Experiment.date    = datestr(now,'yyyy-mm-dd');
 
 % Root directory of the experiment
@@ -56,7 +56,7 @@ P.Images.nImages = numel(P.Images.files);
 %  Timing
 %  ==============================================================
 
-P.Timing.blankITI = 0.100;    % seconds
+P.Timing.blankITI = 0.050;    % seconds
 
 %% ==============================================================
 %  Message Screens
@@ -70,9 +70,9 @@ P.Message.fontSize = 28;
 
 P.Preference.nRounds = 2;
 
-P.Preference.min   = 0;
-P.Preference.max   = 10;
-P.Preference.step  = 0.2;
+P.Preference.min   = 1;
+P.Preference.max   = 7;
+P.Preference.step  = 1;
 % Sitance between labeled (major) ticks
 P.Preference.majorTickInterval = 1;
 P.Preference.start = 5;
@@ -86,7 +86,7 @@ P.Preference.Layout.imageCenterYFraction = 0.40;
 
 % Rating scale
 P.Preference.Layout.scaleWidthFraction = 0.60;
-P.Preference.Layout.scaleYFraction = 0.74;
+P.Preference.Layout.scaleYFraction = 0.85;
 
 % Tick marks
 P.Preference.Layout.majorTickHeightFraction = 0.020;
