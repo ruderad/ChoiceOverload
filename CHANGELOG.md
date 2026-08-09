@@ -40,7 +40,15 @@ Remaining work is limited to interface refinement and participant experience.
 - `showMessageScreen` a genereic message render function
 - `Instructions`/`round-complete`/`task-complete` screens
 - `showBlankScreen` with configurable duration 
+- response collection with mouse
+- having `ESC` as an emeregency exit
 
-### planned
+### Planned
 
 - Practice round 
+- Curation of personalized choice sets
+
+## v0.1.3 - Choice Set Curation
+
+- implemented response collection with mouse 
+
