@@ -25,8 +25,8 @@ P.Screen.backgroundColor = [128 128 128];
 P.Screen.textColor       = [255 255 255];
 
 % Image display area (pixels)
-P.Screen.imageWidth  = 500;
-P.Screen.imageHeight = 500;
+P.Screen.imageWidth  = 550;
+P.Screen.imageHeight = 550;
 
 
 %% ==============================================================
@@ -82,8 +82,7 @@ P.Preference.start = 5;
 %  ==============================================================
 
 % Image
-P.Preference.Layout.imageHeightFraction = 0.42;
-P.Preference.Layout.imageCenterYFraction = 0.30;
+P.Preference.Layout.imageCenterYFraction = 0.40;
 
 % Rating scale
 P.Preference.Layout.scaleWidthFraction = 0.60;
@@ -108,7 +107,7 @@ P.Preference.Layout.fontSize = 24;
 P.Preference.Layout.instructionsYFraction = 0.84;
 
 % Progress bar
-P.Preference.Layout.progressYFraction = 0.96;
+P.Preference.Layout.progressYFraction = 0.98;
 P.Preference.Layout.progressWidthFraction = 0.30;
 P.Preference.Layout.progressHeight = 4;
 
