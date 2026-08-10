@@ -70,6 +70,9 @@ P.Message.fontSize = 28;
 
 P.Preference.nRounds = 2;
 
+P.Preference.nPracticeTrials = 5;
+P.Preference.nTrialsPerRound = 30;
+
 P.Preference.min   = 1;
 P.Preference.max   = 7;
 P.Preference.step  = 1;

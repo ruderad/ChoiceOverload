@@ -56,7 +56,21 @@ Remaining work is limited to interface refinement and participant experience.
 ## v0.1.3 - Result Saving System
 - `collectSubjectInfo.m`: a pop-up window before the main task begins, asks for `subject ID`, `age`, `sex`, `handedness` and saves the results in `R.Subject`
 - `saveResults`: a function that saves the whole `R` struct on a `.mat` file named `SubjectID.mat`
-- 
+ 
+
+ ### v0.1.4 - added practice round, improved round logic
+
+ - `runRatingPractice.m` orchestrates the practrice round
+ - Added two parameters (`P.Preference.nPracticeTrials` and `P.Preference.nTrialsPerRound`) to `intilizalizeParameters.m`
+ - Small tweak on `initializeResults.m`
+ - Improved `computeAverageRating.m`
+ - `runRatingRound.m` can now run on configurable trial numbers
+ - Modified `taskPreferenceRating.m` to accomodate the practice round 
+
+### Planned
+
+  - coming up with a solutoin to ensure that we have enough rating for each number to curate our stimulus sets
+  - curation of set sizes`
 
 
 

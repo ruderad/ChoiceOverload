@@ -13,7 +13,7 @@ for round = 1:P.Preference.nRounds
         nan(1, P.Images.nImages);
 
     R.Preference.round(round).order = ...
-        nan(1, P.Images.nImages);
+        nan(1, P.Preference.nTrialsPerRound);
 
 end
 
