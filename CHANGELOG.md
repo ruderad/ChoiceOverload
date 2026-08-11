@@ -58,7 +58,7 @@ Remaining work is limited to interface refinement and participant experience.
 - `saveResults`: a function that saves the whole `R` struct on a `.mat` file named `SubjectID.mat`
  
 
- ### v0.1.4 - added practice round, improved round logic
+ ## v0.1.4 - added practice round, improved round logic
 
  - `runRatingPractice.m` orchestrates the practrice round
  - Added two parameters (`P.Preference.nPracticeTrials` and `P.Preference.nTrialsPerRound`) to `intilizalizeParameters.m`
@@ -72,5 +72,9 @@ Remaining work is limited to interface refinement and participant experience.
   - coming up with a solutoin to ensure that we have enough rating for each number to curate our stimulus sets
   - curation of set sizes`
 
+## V0.2.0 - 'makeChoiceSets'
+- `makeChoiceSets`, makes costume-sized choice sets in 5 conditions (`UL`,`UM`,`UH`,`CF`,`RS`)
+- `selectClosestToRange.m` selects the nearest images to each uniform category in case the subject ratings are not sufficient.
+- `getSetRating` a small utility function that hows every individual score in a given choiceSet
 
 
