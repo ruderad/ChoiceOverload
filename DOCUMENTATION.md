@@ -384,7 +384,7 @@ Returns:
 %   other text-only screens.
 
 ---
-## utilities/getSetRatings
+## utilities/getSetRatings.m
 
 function ratings = getSetRatings(ChoiceSets, rating, setIndex)
 

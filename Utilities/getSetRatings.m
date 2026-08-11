@@ -17,9 +17,9 @@ function ratings = getSetRatings(ChoiceSets, rating, setIndex)
 %                    column 1: stimulus IDs
 %                    column 2: ratings
 
+ids = ChoiceSets(setIndex).imageIDs(:);
+setRatings = rating(ids);
 
-ids = ChoiceSets(setIndex).imageIDs;
-
-ratings = [ids(:), rating(ids(:))];
+ratings = [ids, setRatings(:)];
 
 end
