@@ -11,8 +11,9 @@ function ChoiceSets = makeChoiceSets(ratings, setSize)
 %       15 Clearly Favored    (CF)
 %       15 Random Set         (RS)
 %
-%   Ratings are indexed by stimulus ID. Unrated stimuli are represented
-%   by NaN and are excluded from all choice sets.
+%   Uniform conditions select stimuli closest to their intended rating
+%   range. If insufficient stimuli are available within the target range,
+%   the closest available ratings are used as substitutes.
 %
 %   Inputs:
 %       ratings  - Vector of stimulus ratings (1-7), indexed by stimulus ID.
@@ -22,58 +23,71 @@ function ChoiceSets = makeChoiceSets(ratings, setSize)
 %       ChoiceSets - Struct array containing the condition and stimulus
 %                    IDs for each of the 45 choice sets.
 
-least    = find(ratings <= 2);
-moderate = find(ratings >= 3 & ratings <= 5);
-most     = find(ratings >= 6);
-ratedIDs = find(~isnan(ratings));
 
-ChoiceSets = [];
-
-% Uniform least
+% Uniform Least
 for t = 1:5
-    ids = least(randperm(numel(least), setSize));
 
-    ChoiceSets(end+1).condition = "UL";
-    ChoiceSets(end).imageIDs = ids;
+    ids = selectClosestToRange(ratings, [1 2], setSize);
+
+    ChoiceSets(t).condition = "UL";
+    ChoiceSets(t).imageIDs = ids;
+
 end
 
-% Uniform moderate
-for t = 1:5
-    ids = moderate(randperm(numel(moderate), setSize));
 
-    ChoiceSets(end+1).condition = "UM";
-    ChoiceSets(end).imageIDs = ids;
+% Uniform Moderate
+for t = 1:5
+
+    ids = selectClosestToRange(ratings, [3 5], setSize);
+
+    ChoiceSets(5+t).condition = "UM";
+    ChoiceSets(5+t).imageIDs = ids;
+
 end
 
-% Uniform most
-for t = 1:5
-    ids = most(randperm(numel(most), setSize));
 
-    ChoiceSets(end+1).condition = "UH";
-    ChoiceSets(end).imageIDs = ids;
+% Uniform High
+for t = 1:5
+
+    ids = selectClosestToRange(ratings, [6 7], setSize);
+
+    ChoiceSets(10+t).condition = "UH";
+    ChoiceSets(10+t).imageIDs = ids;
+
 end
 
-% Clearly favored
+
+% Clearly Favored
 for t = 1:15
-    low = least(randperm(numel(least), setSize - 1));
-    high = most(randperm(numel(most), 1));
+
+    low = selectClosestToRange(ratings, [1 2], setSize - 1);
+    high = selectClosestToRange(ratings, [6 7], 1);
 
     ids = [low high];
+
+    % Randomize position of the highly favored item
     ids = ids(randperm(setSize));
 
-    ChoiceSets(end+1).condition = "CF";
-    ChoiceSets(end).imageIDs = ids;
+    ChoiceSets(15+t).condition = "CF";
+    ChoiceSets(15+t).imageIDs = ids;
+
 end
 
-% Random set
+
+% Random Set
+ratedIDs = find(~isnan(ratings));
+
 for t = 1:15
+
     ids = ratedIDs(randperm(numel(ratedIDs), setSize));
 
-    ChoiceSets(end+1).condition = "RS";
-    ChoiceSets(end).imageIDs = ids;
+    ChoiceSets(30+t).condition = "RS";
+    ChoiceSets(30+t).imageIDs = ids;
+
 end
 
-% Shuffle trials within the block
+
+% Shuffle trials within block
 ChoiceSets = ChoiceSets(randperm(numel(ChoiceSets)));
 
 end
