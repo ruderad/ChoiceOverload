@@ -48,7 +48,9 @@ Screen('Flip', T.window);
 %% Collect response
 
 [response, RT] = collectChoiceResponse( ...
-    T.window, Layout);
+    T.window, ...
+    Layout, ...
+    positions.stimulus);
 
 
 %% Determine selected image
