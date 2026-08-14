@@ -41,6 +41,16 @@ try
     % Task 1: Preference Rating
     R = taskPreferenceRating(R, P, T);
 
+    % Prepare choice sets
+    rating = R.Preference.average;
+
+    ChoiceSets = makeChoiceSets( ...
+        rating, ...
+        P.Choice.setSizes);
+
+    % Task 2: Choice
+    R = taskChoice(R, P, T, ChoiceSets);
+
     cleanupTask();
 
     % Save results

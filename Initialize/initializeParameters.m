@@ -138,6 +138,8 @@ P.Choice.Layout.imageHeight = 0.08;
 
 P.Choice.Layout.fixationSize = 0.02;
 
+P.Choice.Layout.maskColor = P.Screen.textColor;
+
 
 %% ==============================================================
 %  Questionnaire

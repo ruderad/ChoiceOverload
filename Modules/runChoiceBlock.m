@@ -1,37 +1,32 @@
-function block = runChoiceBlock( ...
-    window, textures, ChoiceSets, Layout, maskTexture)
+function block = runChoiceBlock(P, T, ChoiceSets, Layout)
 
 % runChoiceBlock  Run all trials in one choice-task block.
-%
-%   block = runChoiceBlock( ...
-%       window, textures, ChoiceSets, Layout, maskTexture)
 %
 %   Runs every choice trial in the supplied block and stores its results.
 %
 %   Inputs:
-%       window      - Psychtoolbox window pointer.
-%       textures    - PTB textures indexed by image ID.
-%       ChoiceSets  - Cell array containing the choice set for each trial.
-%       Layout      - Pixel-based choice-task layout.
-%       maskTexture - PTB texture used for empty locations.
+%       P         - Parameter structure.
+%       T         - Task structure.
+%       ChoiceSets - Cell array containing the choice set for each trial.
+%       Layout    - Pixel-based choice-task layout.
 %
 %   Output:
-%       block       - Structure containing the results of each trial.
+%       block     - Structure containing the results of each trial.
+
+
 
 
 nTrials = numel(ChoiceSets);
 
 block.trial = repmat(struct(), 1, nTrials);
 
-
 for trial = 1:nTrials
 
     block.trial(trial) = runChoiceTrial( ...
-        window, ...
-        textures, ...
+        P, ...
+        T, ...
         ChoiceSets{trial}, ...
-        Layout, ...
-        maskTexture);
+        Layout);
 
 end
 
