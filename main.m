@@ -44,9 +44,17 @@ try
     % Prepare choice sets
     rating = R.Preference.average;
 
-    ChoiceSets = makeChoiceSets( ...
-        rating, ...
-        P.Choice.setSizes);
+    rating = R.Preference.average;
+
+    ChoiceSets = cell(1, numel(P.Choice.setSizes));
+
+    for i = 1:numel(P.Choice.setSizes)
+
+        ChoiceSets{i} = makeChoiceSets( ...
+            rating, ...
+            P.Choice.setSizes(i));
+
+    end
 
     % Task 2: Choice
     R = taskChoice(R, P, T, ChoiceSets);
