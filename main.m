@@ -44,8 +44,6 @@ try
     % Prepare choice sets
     rating = R.Preference.average;
 
-    rating = R.Preference.average;
-
     ChoiceSets = cell(1, numel(P.Choice.setSizes));
 
     for i = 1:numel(P.Choice.setSizes)
