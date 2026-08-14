@@ -1,4 +1,4 @@
-function trial = runChoiceTrial(P, T, ChoiceSet, Layout)
+function trial = runChoiceTrial(P, T, ChoiceSet,condition, Layout)
 
 % runChoiceTrial  Run one choice-task trial.
 %
@@ -60,6 +60,7 @@ selectedImage = ChoiceSet( ...
 %% Store trial information
 
 trial.choiceSet = ChoiceSet;
+trial.condition = condition;
 trial.positions = positions;
 trial.response = response;
 trial.selectedImage = selectedImage;

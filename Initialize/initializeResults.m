@@ -24,10 +24,12 @@ R.Preference.average = ...
 %  Choice Task
 %  ==============================================================
 
+nBlocks = numel(P.Choice.setSizes);
+
 R.Choice.blockOrder = ...
-    nan(1, 3);
+    nan(1, nBlocks);
 
 R.Choice.block = ...
-    repmat(struct(), 1, 3);
+    repmat(struct('trial', []), 1, nBlocks);
 
 end

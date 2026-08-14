@@ -1,5 +1,5 @@
 function R = taskChoice(R, P, T, ChoiceSets)
-ShowCursor;
+ShowCursor('Arrow');
 
 %% ==============================================================
 %  Choice Task
