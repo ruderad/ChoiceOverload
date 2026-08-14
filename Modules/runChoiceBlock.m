@@ -7,18 +7,25 @@ function block = runChoiceBlock(P, T, ChoiceSets, Layout)
 %   Runs every choice trial in the supplied block and stores its results.
 %
 %   Inputs:
-%       P         - Parameter structure.
-%       T         - Task structure.
+%       P          - Parameter structure.
+%       T          - Task structure.
 %       ChoiceSets - Struct array containing the choice sets for the block.
-%       Layout    - Pixel-based choice-task layout.
+%       Layout     - Pixel-based choice-task layout.
 %
 %   Output:
-%       block     - Structure containing the results of each trial.
+%       block      - Structure containing the results of each trial.
 
 
 nTrials = numel(ChoiceSets);
 
-block.trial = repmat(struct(), 1, nTrials);
+block.trial = repmat( ...
+    struct( ...
+        'choiceSet', [], ...
+        'positions', [], ...
+        'response', [], ...
+        'selectedImage', [], ...
+        'RT', []), ...
+    1, nTrials);
 
 
 for trial = 1:nTrials

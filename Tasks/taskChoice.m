@@ -1,4 +1,5 @@
 function R = taskChoice(R, P, T, ChoiceSets)
+ShowCursor;
 
 %% ==============================================================
 %  Choice Task
@@ -29,5 +30,7 @@ for block = 1:numel(blockOrder)
         Layout);
 
 end
+
+HideCursor;
 
 end
