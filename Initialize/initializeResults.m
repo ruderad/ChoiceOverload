@@ -20,4 +20,14 @@ end
 R.Preference.average = ...
     nan(1, P.Images.nImages);
 
+%% ==============================================================
+%  Choice Task
+%  ==============================================================
+
+R.Choice.blockOrder = ...
+    nan(1, 3);
+
+R.Choice.block = ...
+    repmat(struct(), 1, 3);
+
 end

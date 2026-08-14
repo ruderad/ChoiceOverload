@@ -123,7 +123,21 @@ P.Preference.Layout.progressColor = [0 180 0];
 %  Choice Task
 %  ==============================================================
 
-P.Choice = struct();
+P.Choice.setSizes = [6 12 24];
+
+P.Choice.blockOrder = [1 2 3];
+
+% Choice Task Layout
+P.Choice.Layout.nColumns = 6;
+P.Choice.Layout.nRows = 5;
+
+P.Choice.Layout.centerWidth = 0.20;
+
+P.Choice.Layout.imageWidth = 0.08;
+P.Choice.Layout.imageHeight = 0.08;
+
+P.Choice.Layout.fixationSize = 0.02;
+
 
 %% ==============================================================
 %  Questionnaire

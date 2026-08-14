@@ -58,7 +58,7 @@ Remaining work is limited to interface refinement and participant experience.
 - `saveResults`: a function that saves the whole `R` struct on a `.mat` file named `SubjectID.mat`
  
 
- ## v0.1.4 - added practice round, improved round logic
+ ## v0.1.4 - Added practice round, improved round logic
 
  - `runRatingPractice.m` orchestrates the practrice round
  - Added two parameters (`P.Preference.nPracticeTrials` and `P.Preference.nTrialsPerRound`) to `intilizalizeParameters.m`
@@ -75,6 +75,16 @@ Remaining work is limited to interface refinement and participant experience.
 ## V0.2.0 - 'makeChoiceSets'
 - `makeChoiceSets`, makes costume-sized choice sets in 5 conditions (`UL`,`UM`,`UH`,`CF`,`RS`)
 - `selectClosestToRange.m` selects the nearest images to each uniform category in case the subject ratings are not sufficient.
-- `getSetRating` a small utility function that hows every individual score in a given choiceSet
+- `getSetRating` a small utility function that shows every individual score in a given choiceSet
+
+## V0.2.1 - 'taskChoice'
+- `makeChoiceLayout`
+- `convertChoiceLayout`
+- `randomizeChoicePosition`
+- `drawChoiceSet`
+- `collectChoiceResponse`
+- `runChoiceTrial`
+- `runChoiceBlock`
+- `taskChoice`
 
 

@@ -43,6 +43,41 @@ analysis/
 ```
 
 ---
+# Modules used in each task
+
+## general experiment level functions
+
+```
+collectSubjectInfo.m
+saveResults.m
+```
+
+## PreferenceRatingTask
+```
+
+drawRatingScreen.m      : Draw stimuli and slider
+collectSliderResponse.m : Collect subject response
+runRatingPractice.m     : Run pracitce round
+runRatingTrial.m        : Run a single trial
+runRatingRound.m        : Run the whole round
+computeAverageRating.m  : Compute average rating for each stimulus
+taskPreferenceRating.m  : Run the whole task
+```
+## ChoiceTask
+```
+makeChoiceSets.m           : Curate 45 personalized choice sets of 5 conditions 
+selectClosetToRange.m      : Finds closest missing values from neighbering class
+makeChoiceLayout.m         : Defines the locations
+convertChoiceLayout.m        : Convert geometry to pixels
+randomizeChoicePositions.m : Decide which locations are occupied
+DrawChoiceSet.m            : Draw stimuli and masks
+collectChoiceResponse.m    : Collect subject's response
+runChoiceTrial.m           : Run a single trial
+runChoiceBlock.m           : Run the whole block
+taskChoice                 : Run the whole task
+```
+
+---
 
 # File Descriptions
 
@@ -235,27 +270,37 @@ Saves the complete results structure for one participant.
 
 ---
 
-## modules/selectClosestToRange.m
+## tasks/taskChoice.m
 
-selectClosestToRange  Select stimuli closest to a target rating range.
+Top-level controller for the choice task.
 
-   ids = selectClosestToRange(ratings, targetRange, n)
+% taskChoice  Run the choice task.
+%
+%   R = taskChoice(P, R, window, textures, ChoiceSets, maskTexture)
+%
+%   Runs the three choice-task blocks in the order specified by
+%   P.Choice.blockOrder and stores the results in R.Choice.
+%
+%   Inputs:
+%       P           - Parameter structure.
+%       R           - Results structure.
+%       window      - Psychtoolbox window pointer.
+%       textures    - PTB textures indexed by image ID.
+%       ChoiceSets  - Cell array containing the prepared choice sets
+%                     for each set size.
+%       maskTexture - PTB texture used for empty locations.
+%
+%   Output:
+%       R           - Updated results structure.
+%
+%   ChoiceSets are organized by set-size index:
+%
+%       ChoiceSets{1} -> 6-item trials
+%       ChoiceSets{2} -> 12-item trials
+%       ChoiceSets{3} -> 24-item trials
+%
+%   The function only handles block execution and result storage.
 
-   Selects n rated stimuli whose ratings are closest to the specified
-   target range. Stimuli inside the target range are always preferred.
-   If additional stimuli are needed, stimuli outside the range are
-   selected according to their distance from the range.
-
-   When multiple stimuli have the same distance from the target range,
-   selection among them is randomized.
-
-   Inputs:
-       ratings     - Vector of stimulus ratings, indexed by stimulus ID.
-       targetRange - Two-element vector defining the desired rating range.
-       n           - Number of stimuli to select.
-
-   Output:
-       ids         - Stimulus IDs of the selected images.
 
 ---
 ## makeChoiceSets.m
@@ -284,6 +329,216 @@ selectClosestToRange  Select stimuli closest to a target rating range.
                     IDs for each of the 45 choice sets.
 
 ---
+
+## modules/selectClosestToRange.m
+
+selectClosestToRange  Select stimuli closest to a target rating range.
+
+   ids = selectClosestToRange(ratings, targetRange, n)
+
+   Selects n rated stimuli whose ratings are closest to the specified
+   target range. Stimuli inside the target range are always preferred.
+   If additional stimuli are needed, stimuli outside the range are
+   selected according to their distance from the range.
+
+   When multiple stimuli have the same distance from the target range,
+   selection among them is randomized.
+
+   Inputs:
+       ratings     - Vector of stimulus ratings, indexed by stimulus ID.
+       targetRange - Two-element vector defining the desired rating range.
+       n           - Number of stimuli to select.
+
+   Output:
+       ids         - Stimulus IDs of the selected images.
+
+---
+## modules/makeChoiceLayout.m
+
+makeChoiceLayout  Generate the fixed spatial layout for the choice task.
+%
+%   Layout = makeChoiceLayout(P)
+%
+%   Generates the fixed 30-location spatial layout used by the choice
+%   task. The layout consists of 6 columns and 5 rows, with the stimulus
+%   regions symmetrically distributed around a central fixation region.
+%
+%   All coordinates are normalized to the screen:
+%       x = -0.5 ... +0.5
+%       y = -0.5 ... +0.5
+%
+%   Inputs:
+%       P       - Parameter structure containing Choice.Layout settings.
+%
+%   Output:
+%       Layout  - Structure containing:
+%                   .rect      30 × 4 matrix of stimulus rectangles
+%                   .fixation  1 × 4 fixation rectangle
+%
+%   Rectangle format:
+%       [left top right bottom]
+%
+%   The function only defines spatial geometry. It does not assign
+%   stimuli, conditions, set sizes, or masks to locations.
+
+---
+## modules/convertChoiceLayout.m
+
+function Layout = convertChoiceLayout(Layout, screenRect)
+
+% convertChoiceLayout  Convert normalized layout coordinates to pixels.
+%
+%   Layout = convertChoiceLayout(Layout, screenRect)
+%
+%   Converts the normalized coordinates produced by makeChoiceLayout
+%   into Psychtoolbox pixel coordinates.
+%
+%   Normalized coordinates:
+%       x = -0.5 ... +0.5
+%       y = -0.5 ... +0.5
+%
+%   Inputs:
+%       Layout      - Layout generated by makeChoiceLayout.
+%       screenRect  - Psychtoolbox screen rectangle:
+%                     [left top right bottom]
+%
+%   Output:
+%       Layout      - Layout with pixel-based rectangles.
+%
+%   The normalized layout is overwritten with pixel coordinates.
+
+---
+## modules/randomizeChoicePositions.m
+
+function positions = randomizeChoicePositions(Layout, setSize)
+
+% randomizeChoicePositions  Randomly assign occupied locations.
+%
+%   positions = randomizeChoicePositions(Layout, setSize)
+%
+%   Randomly selects setSize locations from the 30 fixed locations
+%   generated by makeChoiceLayout. The remaining locations are
+%   available for masking.
+%
+%   Inputs:
+%       Layout  - Spatial layout generated by makeChoiceLayout.
+%       setSize - Number of stimuli presented on the current trial.
+%
+%   Output:
+%       positions.stimulus - Indices of occupied locations.
+%       positions.empty     - Indices of unoccupied locations.
+%
+%   The function only handles spatial randomization. It does not assign
+%   stimuli or conditions to the selected locations.
+
+---
+## modules/DrawChoiceSet.m
+
+function drawChoiceSet(window, textures, ChoiceSet, Layout, positions, maskTexture)
+
+% drawChoiceSet  Draw one choice-set display.
+%
+%   drawChoiceSet(window, textures, ChoiceSet, Layout, ...
+%                 positions, maskTexture)
+%
+%   Draws the stimuli in ChoiceSet at their assigned locations and
+%   fills all remaining locations with the mask texture.
+%
+%   Inputs:
+%       window      - Psychtoolbox window pointer.
+%       textures    - PTB textures indexed by image ID.
+%       ChoiceSet   - Image IDs belonging to the current trial.
+%       Layout      - Pixel-based layout generated by
+%                     convertChoiceLayout.
+%       positions   - Location assignment generated by
+%                     randomizeChoicePositions.
+%       maskTexture - PTB texture used for empty locations.
+%
+%   The function only draws. It does not randomize, convert coordinates,
+%   collect responses, or modify results.
+
+---
+## modules/collectChoiceResponse.m
+
+function [response, RT] = collectChoiceResponse(window, Layout)
+
+% collectChoiceResponse  Collect a mouse click on the choice grid.
+%
+%   [response, RT] = collectChoiceResponse(window, Layout)
+%
+%   Waits for the participant to click one of the 30 cells in the
+%   choice-task grid.
+%
+%   Inputs:
+%       window  - Psychtoolbox window pointer.
+%       Layout  - Pixel-based layout generated by
+%                 convertChoiceLayout.
+%
+%   Outputs:
+%       response - Index of the clicked cell (1 ... 30).
+%       RT       - Response time in seconds.
+%
+%   The function only collects the mouse response. It does not determine
+%   which stimulus occupies the selected location or modify R.
+
+---
+## modules/runChoiceTrial.m
+
+function trial = runChoiceTrial( ...
+    window, textures, ChoiceSet, Layout, maskTexture)
+
+% runChoiceTrial  Run one choice-task trial.
+%
+%   trial = runChoiceTrial( ...
+%       window, textures, ChoiceSet, Layout, maskTexture)
+%
+%   Presents one choice set, randomly assigns its stimuli to spatial
+%   locations, displays the choice screen, and collects the participant's
+%   mouse response.
+%
+%   Inputs:
+%       window      - Psychtoolbox window pointer.
+%       textures    - PTB textures indexed by image ID.
+%       ChoiceSet   - Image IDs belonging to the current trial.
+%       Layout      - Pixel-based layout generated by
+%                     convertChoiceLayout.
+%       maskTexture - PTB texture used for empty locations.
+%
+%   Output:
+%       trial       - Structure containing:
+%                       .choiceSet
+%                       .positions
+%                       .response
+%                       .selectedImage
+%                       .RT
+%
+%   The function only handles the sequence of one trial. It does not
+%   generate choice sets, define the layout, or modify R.
+
+---
+## modules/runChoiceblock.m
+function block = runChoiceBlock( ...
+    window, textures, ChoiceSets, Layout, maskTexture)
+
+% runChoiceBlock  Run all trials in one choice-task block.
+%
+%   block = runChoiceBlock( ...
+%       window, textures, ChoiceSets, Layout, maskTexture)
+%
+%   Runs every choice trial in the supplied block and stores its results.
+%
+%   Inputs:
+%       window      - Psychtoolbox window pointer.
+%       textures    - PTB textures indexed by image ID.
+%       ChoiceSets  - Cell array containing the choice set for each trial.
+%       Layout      - Pixel-based choice-task layout.
+%       maskTexture - PTB texture used for empty locations.
+%
+%   Output:
+%       block       - Structure containing the results of each trial.
+
+---
+
 
 ## utilities/readimg.m
 
@@ -456,13 +711,16 @@ Can safely be discarded after the experiment ends.
 
 - Project architecture
 - Initialization layer
+- Data recording structure
 - Preference rating engine
 - Fully-configurable preference rating task
 - Personalized Choice Set curation engine
+- Fully configutable choice task
+
 
 ## Planned
 
-- Instruction screens
+- Farsi Instruction screens
 - Questionnaire
 - EEG triggers
 - Eye-tracker integration
