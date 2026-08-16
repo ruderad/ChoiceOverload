@@ -131,12 +131,10 @@ P.Choice.blockOrder = [1 2 3];
 P.Choice.Layout.nColumns = 6;
 P.Choice.Layout.nRows = 5;
 
-P.Choice.Layout.centerWidth = 0.20;
+P.Choice.Layout.centerWidth = 0.10;
 
-P.Choice.Layout.imageWidth = 0.08;
-P.Choice.Layout.imageHeight = 0.08;
-
-% P.Choice.Layout.fixationSize = 0.02;
+P.Choice.Layout.imageWidth = 0.175;
+P.Choice.Layout.imageHeight = 0.175;
 
 P.Choice.Layout.maskColor = P.Screen.textColor;
 
@@ -144,6 +142,13 @@ P.Choice.Layout.fixationCrossSize   = 0.04;
 P.Choice.Layout.fixationColor       = [0 1 0];
 P.Choice.Layout.fixationBorderWidth = 3;
 P.Choice.Layout.fixationCrossWidth  = 3;
+
+% Choice Task Timing
+P.Choice.Timing.fixation  = 1.0;
+P.Choice.Timing.exposure  = 8.0;
+P.Choice.Timing.mask      = 0.5;
+P.Choice.Timing.choice    = 3.0;
+P.Choice.Timing.questions = 6.0;
 
 %% ==============================================================
 %  Questionnaire

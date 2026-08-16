@@ -68,7 +68,7 @@ taskPreferenceRating.m  : Run the whole task
 makeChoiceSets.m           : Curate 45 personalized choice sets of 5 conditions 
 selectClosetToRange.m      : Finds closest missing values from neighbering class
 makeChoiceLayout.m         : Defines the locations
-convertChoiceLayout.m        : Convert geometry to pixels
+convertChoiceLayout.m      : Convert geometry to pixels
 randomizeChoicePositions.m : Decide which locations are occupied
 DrawChoiceSet.m            : Draw stimuli and masks
 collectChoiceResponse.m    : Collect subject's response
