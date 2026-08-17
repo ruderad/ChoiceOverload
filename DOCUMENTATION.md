@@ -76,6 +76,16 @@ runChoiceTrial.m           : Run a single trial
 runChoiceBlock.m           : Run the whole block
 taskChoice                 : Run the whole task
 ```
+## Questionnaire
+```
+makeQuestionnaireLayout
+convertQuestionnaireLayout
+drawQuestionnaire
+collectQuestionnaireResponse
+runQuestionnaire
+ ```
+
+
 
 ---
 
@@ -716,6 +726,8 @@ Can safely be discarded after the experiment ends.
 - Fully-configurable preference rating task
 - Personalized Choice Set curation engine
 - Fully configutable choice task
+- Questionnaire drawing engine with Perisan questions
+- Whole task from begining to the end 
 
 
 ## Planned

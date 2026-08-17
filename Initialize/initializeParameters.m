@@ -154,6 +154,42 @@ P.Choice.Timing.questions = 6.0;
 %  Questionnaire
 %  ==============================================================
 
-P.Questionnaire = struct();
+P.Questionnaire.nQuestions   = 3;
+P.Questionnaire.nScalePoints = 7;
+P.Questionnaire.duration     = 6.0;
+
+% Question image dimensions
+P.Questionnaire.imageWidth  = 1988;
+P.Questionnaire.imageHeight = 204;
+
+
+%% Questionnaire Layout
+
+P.Questionnaire.Layout.instructionWidth  = 0.70;
+P.Questionnaire.Layout.instructionHeight = 0.06;
+P.Questionnaire.Layout.instructionY      = 0.40;
+
+P.Questionnaire.Layout.questionWidth = 0.65;
+
+P.Questionnaire.Layout.buttonWidth  = 0.055;
+P.Questionnaire.Layout.buttonHeight = 0.045;
+
+P.Questionnaire.Layout.buttonGap = 0.012;
+
+P.Questionnaire.Layout.firstQuestionY = 0.22;
+P.Questionnaire.Layout.rowSpacing = 0.27;
+
+P.Questionnaire.Layout.questionResponseGap = 0.025;
+
+P.Questionnaire.Layout.buttonBorderWidth = 2;
+
+P.Questionnaire.Layout.selectedColor = [0 1 0];
+P.Questionnaire.Layout.selectedBorderWidth = 4;
+
+P.Choice.fixationDuration       = 1.0;
+P.Choice.exposureDuration       = 8.0;
+P.Choice.maskDuration           = 0.5;
+P.Choice.choiceFixationDuration = 1.0;
+P.Choice.choiceDuration         = 3.0;
 
 end

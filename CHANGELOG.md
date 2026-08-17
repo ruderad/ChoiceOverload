@@ -87,4 +87,9 @@ Remaining work is limited to interface refinement and participant experience.
 - `runChoiceBlock`
 - `taskChoice`
 
+## v0.2.2 - 'temporal strucutre + questionnaire'
+- fixed trial temporal structure of choice task
+- `makeQuestionnaireLayout`
+- `convertQuestionnaireLayout`
+
 
