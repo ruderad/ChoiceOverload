@@ -87,9 +87,13 @@ Remaining work is limited to interface refinement and participant experience.
 - `runChoiceBlock`
 - `taskChoice`
 
-## v0.2.2 - 'temporal strucutre + questionnaire'
-- fixed trial temporal structure of choice task
-- `makeQuestionnaireLayout`
-- `convertQuestionnaireLayout`
+## v0.2.2 - 'Full Psychophysics Experiment'
+- Changed `collectChoiceResponse` and `runChoiceTrial` to accomodate the final features of the experiment
+- Questions integrated after each trial. full list of new functions:
+	- `makeQuestionnaireLayout`
+	- `convertQuestionnaireLayout`
+	- `drawQuestionnaire`
+	- `collectQuestionnaireResponse`
+	- `runQuestionnair`
 
 

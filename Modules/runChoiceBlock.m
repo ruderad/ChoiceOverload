@@ -1,32 +1,64 @@
-function block = runChoiceBlock(P, T, ChoiceSets, Layout)
+function block = runChoiceBlock( ...
+    P, T, ChoiceSets, ChoiceLayout, ...
+    QuestionnaireLayout, questionFiles)
 
 % runChoiceBlock  Run all trials in one choice-task block.
 %
-%   block = runChoiceBlock(P, T, ChoiceSets, Layout)
+%   block = runChoiceBlock( ...
+%       P, T, ChoiceSets, ChoiceLayout, ...
+%       QuestionnaireLayout, questionFiles)
 %
-%   Runs every choice trial in the supplied block and stores its results.
+%   Runs every choice trial in the supplied block.
 %
 %   Inputs:
-%       P          - Parameter structure.
-%       T          - Task structure.
-%       ChoiceSets - Struct array containing the choice sets for the block.
-%       Layout     - Pixel-based choice-task layout.
+%       P                   - Parameter structure.
+%       T                   - Task structure.
+%       ChoiceSets          - Struct array containing the choice sets
+%                             for the current block.
+%       ChoiceLayout        - Pixel-based choice-task layout.
+%       QuestionnaireLayout - Pixel-based questionnaire layout.
+%       questionFiles       - Cell array containing questionnaire
+%                             image file paths.
 %
 %   Output:
-%       block      - Structure containing the results of each trial.
+%       block               - Structure containing all trial results.
 
+
+%% ==============================================================
+% Number of Trials
+% ==============================================================
 
 nTrials = numel(ChoiceSets);
 
+
+%% ==============================================================
+% Preallocate Trial Structure
+% ==============================================================
+
+emptyQuestion = struct( ...
+    'response', nan(1, P.Questionnaire.nQuestions), ...
+    'RT',       nan(1, P.Questionnaire.nQuestions));
+
+
+emptyTrial = struct( ...
+    'choiceSet',     [], ...
+    'condition',     "", ...
+    'positions',     [], ...
+    'response',      [], ...
+    'selectedImage', NaN, ...
+    'RT',            NaN, ...
+    'question',      emptyQuestion);
+
+
 block.trial = repmat( ...
-    struct( ...
-        'choiceSet', [], ...
-        'condition', "", ...
-        'positions', [], ...
-        'response', [], ...
-        'selectedImage', [], ...
-        'RT', []), ...
-    1, nTrials);
+    emptyTrial, ...
+    1, ...
+    nTrials);
+
+
+%% ==============================================================
+% Run Trials
+% ==============================================================
 
 for trial = 1:nTrials
 
@@ -35,8 +67,11 @@ for trial = 1:nTrials
         T, ...
         ChoiceSets(trial).imageIDs, ...
         ChoiceSets(trial).condition, ...
-        Layout);
+        ChoiceLayout, ...
+        QuestionnaireLayout, ...
+        questionFiles);
 
 end
+
 
 end

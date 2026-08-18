@@ -144,11 +144,11 @@ P.Choice.Layout.fixationBorderWidth = 3;
 P.Choice.Layout.fixationCrossWidth  = 3;
 
 % Choice Task Timing
-P.Choice.Timing.fixation  = 1.0;
-P.Choice.Timing.exposure  = 8.0;
-P.Choice.Timing.mask      = 0.5;
-P.Choice.Timing.choice    = 3.0;
-P.Choice.Timing.questions = 6.0;
+P.Choice.fixationDuration       = 1.0;
+P.Choice.exposureDuration       = 8.0;
+P.Choice.maskDuration           = 0.5;
+P.Choice.choiceFixationDuration = 1.0;
+P.Choice.choiceDuration         = 3.0;
 
 %% ==============================================================
 %  Questionnaire
@@ -186,10 +186,10 @@ P.Questionnaire.Layout.buttonBorderWidth = 2;
 P.Questionnaire.Layout.selectedColor = [0 1 0];
 P.Questionnaire.Layout.selectedBorderWidth = 4;
 
-P.Choice.fixationDuration       = 1.0;
-P.Choice.exposureDuration       = 8.0;
-P.Choice.maskDuration           = 0.5;
-P.Choice.choiceFixationDuration = 1.0;
-P.Choice.choiceDuration         = 3.0;
+P.Questionnaire.questionFiles = { ...
+    fullfile(root, 'Instructions', 'Q0.png'), ...
+    fullfile(root, 'Instructions', 'Q1.png'), ...
+    fullfile(root, 'Instructions', 'Q2.png'), ...
+    fullfile(root, 'Instructions', 'Q3.png')};
 
 end
