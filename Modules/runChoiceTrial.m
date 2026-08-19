@@ -14,21 +14,25 @@ function trial = runChoiceTrial( ...
 %       Exposure
 %       Mask
 %       Choice fixation
-%       Response phase
+%       Response
 %       Questionnaire
 %
-%   Response phase:
+%   Response highlighting:
 %
-%       Yellow fixation border
-%           ->
-%       Yellow hovered-stimulus border
-%           ->
-%       Green selected-stimulus border
+%       Response onset:
+%           Yellow border around fixation
 %
-%   No yellow highlighting is shown during exposure.
+%       Hover valid stimulus:
+%           Yellow border around stimulus
 %
-%   If no valid response is made before the choice timeout,
-%   the questionnaire is skipped.
+%       Mouse outside valid stimuli:
+%           No highlight
+%
+%       Valid click:
+%           Green border around selected stimulus
+%
+%   The yellow fixation border appears only at response onset.
+%   It does not return after mouse movement begins.
 
 
 %% ==============================================================
@@ -116,8 +120,13 @@ WaitSecs(P.Choice.fixationDuration);
 % Exposure
 % ==============================================================
 
-% IMPORTANT:
-% No yellow response highlighting exists in this phase.
+% No response highlighting is shown during exposure.
+
+Screen( ...
+    'FillRect', ...
+    T.window, ...
+    P.Screen.backgroundColor);
+
 
 drawChoiceSet( ...
     P, ...
@@ -206,44 +215,69 @@ WaitSecs(P.Choice.choiceFixationDuration);
 
 
 %% ==============================================================
-% Prepare Cached Response Display
+% Create Response Cache
 % ==============================================================
 
-% Create an offscreen window with the same dimensions as the
-% participant's display.
+% Create an offscreen window with the same size and graphics context
+% as the participant display.
+%
+% IMPORTANT:
+% We do NOT call drawChoiceSet using this window.
+%
+% readimg -> Screen('MakeTexture') must continue using T.window.
+
 responseBuffer = Screen( ...
     'OpenOffscreenWindow', ...
     T.window, ...
     P.Screen.backgroundColor);
 
 
-% drawChoiceSet expects the target window inside T.
-% Make a temporary copy that points to the offscreen window.
-bufferT = T;
-bufferT.window = responseBuffer;
+%% ==============================================================
+% Build Clean Response Screen
+% ==============================================================
+
+% Draw the clean response display normally into the REAL onscreen
+% window backbuffer.
+
+Screen( ...
+    'FillRect', ...
+    T.window, ...
+    P.Screen.backgroundColor);
 
 
-% Draw the complete clean choice screen once.
 drawChoiceSet( ...
     P, ...
-    bufferT, ...
+    T, ...
     stimulusIDs, ...
     ChoiceLayout, ...
     positions);
 
 
 %% ==============================================================
-% Response Phase
+% Cache Clean Response Screen
 % ==============================================================
 
-% Restore clean response display from the cached buffer.
+% Copy the completed clean response display from the onscreen
+% backbuffer into the offscreen cache.
+%
+% From this point onward, hover updates can restore the screen from
+% responseBuffer without loading images again.
+
 Screen( ...
     'CopyWindow', ...
-    responseBuffer, ...
-    T.window);
+    T.window, ...
+    responseBuffer);
 
 
-% Response phase begins with the yellow border on fixation.
+%% ==============================================================
+% Response Phase Onset
+% ==============================================================
+
+% The clean response display is already present in the onscreen
+% backbuffer from drawChoiceSet.
+%
+% Add the yellow fixation cue before the first response-phase flip.
+
 drawResponseHighlight( ...
     T.window, ...
     ChoiceLayout.fixation, ...
@@ -251,7 +285,7 @@ drawResponseHighlight( ...
     P.Choice.Highlight.borderWidth);
 
 
-% Actual response onset timestamp.
+% This flip marks the true response-phase onset.
 choiceOnset = Screen('Flip', T.window);
 
 
@@ -274,10 +308,12 @@ trial.RT = RT;
 
 
 %% ==============================================================
-% Close Cached Response Display
+% Close Response Cache
 % ==============================================================
 
-Screen('Close', responseBuffer);
+Screen( ...
+    'Close', ...
+    responseBuffer);
 
 
 %% ==============================================================
@@ -289,6 +325,7 @@ if isempty(response)
     trial.selectedImage = NaN;
 
     % Questionnaire fields already contain NaN values.
+    % Skip questionnaire after a missed choice.
     return;
 
 end
