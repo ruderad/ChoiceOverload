@@ -5,7 +5,7 @@ function P = initializeParameters(root)
 %  ==============================================================
 
 P.Experiment.name    = 'Choice Overload';
-P.Experiment.version = '0.2.4';
+P.Experiment.version = '0.2.5';
 P.Experiment.date    = datestr(now,'yyyy-mm-dd');
 
 % Root directory of the experiment
@@ -207,7 +207,7 @@ P.Choice.choiceDuration         = 3.0;
 P.Questionnaire.nQuestions   = 3;
 
 % Can later be changed to 9 without changing questionnaire modules.
-P.Questionnaire.nScalePoints = 7;
+P.Questionnaire.nScalePoints = 9;
 
 % Maximum response time PER QUESTION.
 P.Questionnaire.duration = 6.0;
@@ -227,12 +227,12 @@ P.Questionnaire.imageHeight = 350;
 % ==============================================================
 
 % Q0 general instruction
-P.Questionnaire.Layout.instructionWidth  = 0.70;
-P.Questionnaire.Layout.instructionHeight = 0.10;
+P.Questionnaire.Layout.instructionWidth  = 0.82;
+P.Questionnaire.Layout.instructionHeight = 0.12;
 P.Questionnaire.Layout.instructionY      = -0.28;
 
 % Current question
-P.Questionnaire.Layout.questionWidth = 0.65;
+P.Questionnaire.Layout.questionWidth = 0.78;
 P.Questionnaire.Layout.questionY     = 0.00;
 
 % Rating scale

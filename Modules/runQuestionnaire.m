@@ -68,24 +68,24 @@ for question = 1:nQuestions
         responseBuffer);
 
 
-    %% ----------------------------------------------------------
-    % Reset Cursor
-    % -----------------------------------------------------------
-
-    % Start every questionnaire question from the center of
-    % the screen so the cursor cannot begin on a response button.
-
-    mouseStartX = round( ...
-        mean(T.windowRect([1 3])));
-
-    mouseStartY = round( ...
-        mean(T.windowRect([2 4])));
-
-
-    SetMouse( ...
-        mouseStartX, ...
-        mouseStartY, ...
-        T.window);
+    % %% ----------------------------------------------------------
+    % % Reset Cursor
+    % % -----------------------------------------------------------
+    % 
+    % % Start every questionnaire question from the center of
+    % % the screen so the cursor cannot begin on a response button.
+    % 
+    % mouseStartX = round( ...
+    %     mean(T.windowRect([1 3])));
+    % 
+    % mouseStartY = round( ...
+    %     mean(T.windowRect([2 4])));
+    % 
+    % 
+    % SetMouse( ...
+    %     mouseStartX, ...
+    %     mouseStartY, ...
+    %     T.window);
 
 
     %% ----------------------------------------------------------
