@@ -79,6 +79,27 @@ end
 
 
 %% ==============================================================
+% Initialize Mouse Position
+% ==============================================================
+
+% Place the cursor at the center fixation location once,
+% before the first choice trial begins.
+%
+% The cursor is NOT reset on subsequent trials.
+
+mouseStartX = round( ...
+    mean(ChoiceLayout.fixation([1 3])));
+
+mouseStartY = round( ...
+    mean(ChoiceLayout.fixation([2 4])));
+
+
+SetMouse( ...
+    mouseStartX, ...
+    mouseStartY, ...
+    T.window);
+
+%% ==============================================================
 % Run Blocks
 % ==============================================================
 

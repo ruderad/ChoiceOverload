@@ -2,55 +2,76 @@ function [response, RT] = collectChoiceResponse( ...
     window, baseWindow, Layout, stimulusLocations, ...
     choiceOnset, choiceDuration, Highlight)
 
-% collectChoiceResponse  Collect an interactive choice response.
+% collectChoiceResponse
 %
-%   [response, RT] = collectChoiceResponse( ...
-%       window, baseWindow, Layout, stimulusLocations, ...
-%       choiceOnset, choiceDuration, Highlight)
+% Collect an interactive mouse response during the choice phase.
 %
-%   During the response phase:
+% Visual state:
 %
-%       1. Yellow border begins on the fixation cell.
-%       2. Yellow border moves to a valid stimulus cell when hovered.
-%       3. If the mouse leaves all valid cells, the yellow border
-%          returns to fixation.
-%       4. Clicking a valid stimulus turns its border green.
+%   Response onset:
+%       Yellow border is already visible around fixation.
 %
-%   Only occupied stimulus locations can be selected.
+%   Cursor remains inside fixation:
+%       Yellow fixation border remains visible.
 %
-%   Inputs:
-%       window            - Onscreen Psychtoolbox window.
-%       baseWindow        - Cached choice display in an offscreen window.
-%       Layout            - Pixel-based choice-task layout.
-%       stimulusLocations - Indices containing actual stimuli.
-%       choiceOnset       - Response-phase onset timestamp.
-%       choiceDuration    - Maximum response duration.
-%       Highlight         - Highlight parameter structure.
+%   Cursor leaves fixation:
+%       Fixation highlight disappears permanently.
 %
-%   Outputs:
-%       response          - Selected spatial location.
-%       RT                - Response time from choice onset.
+%   Cursor enters a valid stimulus:
+%       Yellow border appears around that stimulus.
+%
+%   Cursor leaves all valid stimuli:
+%       No highlight is shown.
+%
+%   Valid click:
+%       Selected stimulus receives a green confirmation border.
+%
+%
+% Mouse-button state and visual state are intentionally independent.
+%
+% A mouse button held before response onset cannot register as a choice.
+% However, holding a button does not prevent hover/highlight updates.
 
 
 %% ==============================================================
-% Initialize
+% Initialize Result
 % ==============================================================
+
 response = [];
 RT = NaN;
 
-% 0 means the initial fixation highlight is currently visible.
-% [] means no highlight is visible.
-% Positive values are valid stimulus locations.
+
+%% ==============================================================
+% Visual State
+% ==============================================================
+
+% Highlight-state convention:
+%
+%   0  = fixation currently highlighted
+%   [] = no highlight
+%   >0 = highlighted stimulus location
+%
+% runChoiceTrial has already drawn the yellow fixation border
+% before entering this function.
+
 currentHighlight = 0;
 
 
+% Fixation is allowed to remain highlighted only until
+% the cursor leaves it for the first time.
+fixationCueActive = true;
+
 
 %% ==============================================================
-% Mouse State
+% Mouse-Arming State
 % ==============================================================
 
-% Do not allow a button that was already held before response onset
-% to count as a choice.
+% If a mouse button is already held when the response phase begins,
+% do not allow that existing press to count as a response.
+%
+% This state controls RESPONSE VALIDITY ONLY.
+% It does not control visual highlighting.
+
 [~, ~, buttons] = GetMouse(window);
 
 mouseArmed = ~any(buttons);
@@ -80,56 +101,121 @@ while isempty(response)
 
 
     %% ----------------------------------------------------------
-    % Arm Mouse After Release
+    % Arm Mouse After Existing Press Is Released
     % -----------------------------------------------------------
 
-    if ~mouseArmed
+    if ~mouseArmed && ~any(buttons)
 
-        if ~any(buttons)
-            mouseArmed = true;
-        end
-
-        continue;
+        mouseArmed = true;
 
     end
 
 
     %% ----------------------------------------------------------
-    % Determine Hover Location
+    % Determine Current Highlight Target
     % -----------------------------------------------------------
 
-    hoverLocation = [];
+    if fixationCueActive
 
-    for i = stimulusLocations
+        % As long as the cursor remains inside fixation,
+        % keep the initial yellow fixation cue visible.
 
         if IsInRect( ...
                 x, ...
                 y, ...
-                Layout.rect(i, :))
+                Layout.fixation)
 
-            hoverLocation = i;
-            break;
+            hoverLocation = 0;
+
+
+        else
+
+            % Cursor has left fixation.
+            %
+            % From this point onward the fixation highlight
+            % can never return during this response period.
+
+            fixationCueActive = false;
+
+            hoverLocation = [];
+
+
+            % Check whether the cursor moved directly from
+            % fixation onto a valid stimulus.
+
+            for i = stimulusLocations
+
+                if IsInRect( ...
+                        x, ...
+                        y, ...
+                        Layout.rect(i, :))
+
+                    hoverLocation = i;
+                    break;
+
+                end
+
+            end
+
+        end
+
+
+    else
+
+        % The initial fixation cue has already ended.
+        %
+        % From now on only real stimulus cells can be highlighted.
+
+        hoverLocation = [];
+
+
+        for i = stimulusLocations
+
+            if IsInRect( ...
+                    x, ...
+                    y, ...
+                    Layout.rect(i, :))
+
+                hoverLocation = i;
+                break;
+
+            end
 
         end
 
     end
 
+
     %% ----------------------------------------------------------
-    % Update Hover Display
+    % Update Highlight Display
     % -----------------------------------------------------------
 
-    if ~isequal(hoverLocation, currentHighlight)
+    if ~isequal( ...
+            hoverLocation, ...
+            currentHighlight)
 
-        % Restore the clean response display.
+
+        % Restore clean response screen.
         Screen( ...
             'CopyWindow', ...
             baseWindow, ...
             window);
 
 
-        % Only draw a yellow border when the mouse is
-        % over a valid stimulus location.
-        if ~isempty(hoverLocation)
+        if isequal(hoverLocation, 0)
+
+            % Initial fixation cue is still active.
+
+            drawResponseHighlight( ...
+                window, ...
+                Layout.fixation, ...
+                Highlight.hoverColor, ...
+                Highlight.borderWidth);
+
+
+        elseif ~isempty(hoverLocation)
+
+            % Cursor is over a valid stimulus.
 
             drawResponseHighlight( ...
                 window, ...
@@ -137,10 +223,16 @@ while isempty(response)
                 Highlight.hoverColor, ...
                 Highlight.borderWidth);
 
+
         end
+
+        % If hoverLocation == [], nothing is drawn.
+        % The clean cached screen is therefore shown with
+        % no yellow response border.
 
 
         Screen('Flip', window);
+
 
         currentHighlight = hoverLocation;
 
@@ -148,17 +240,22 @@ while isempty(response)
 
 
     %% ----------------------------------------------------------
-    % Valid Click
+    % Accept Valid Mouse Click
     % -----------------------------------------------------------
 
-    if any(buttons) && ~isempty(hoverLocation)
+    if mouseArmed && ...
+            any(buttons) && ...
+            ~isempty(hoverLocation) && ...
+            hoverLocation > 0
+
 
         response = hoverLocation;
+
         RT = GetSecs - choiceOnset;
 
 
         %% ------------------------------------------------------
-        % Green Selection Feedback
+        % Green Selection Confirmation
         % -------------------------------------------------------
 
         Screen( ...
@@ -183,6 +280,7 @@ while isempty(response)
 
         [~, ~, buttons] = GetMouse(window);
 
+
         while any(buttons)
 
             WaitSecs(0.001);
@@ -193,7 +291,7 @@ while isempty(response)
 
 
         %% ------------------------------------------------------
-        % Keep Green Feedback Visible Long Enough to Perceive
+        % Maintain Green Feedback
         % -------------------------------------------------------
 
         remainingFeedback = ...
