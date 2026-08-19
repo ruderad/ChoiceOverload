@@ -4,38 +4,69 @@ function drawQuestionnaire(P, T, Layout, questionFiles, response)
 %
 %   drawQuestionnaire(P, T, Layout, questionFiles, response)
 %
-%   Draws the general instruction, questions, and Likert buttons.
-%   Selected responses are highlighted with a green border.
+%   Draws:
+%       - General questionnaire instruction
+%       - Question images
+%       - Likert response buttons
+%       - Selected-response highlights
 %
-%   response is a 1 x nQuestions vector. NaN indicates that the
-%   corresponding question has not yet been answered.
+%   Inputs:
+%       P             - Parameter structure.
+%       T             - Task structure.
+%       Layout        - Pixel-based questionnaire layout.
+%       questionFiles - Cell array containing:
+%                           Q0 = general instruction
+%                           Q1...Qn = question images
+%       response      - 1 x nQuestions vector.
+%                       NaN indicates no response yet.
 
 
 %% ==============================================================
-% Instruction
+% Background
+% ==============================================================
+
+Screen( ...
+    'FillRect', ...
+    T.window, ...
+    P.Screen.backgroundColor);
+
+
+%% ==============================================================
+% General Instruction
 % ==============================================================
 
 [textureID, imageWidth, imageHeight] = ...
-    readimg(questionFiles{1}, T.window);
+    readimg( ...
+        questionFiles{1}, ...
+        T.window);
 
+
+% Determine the largest scale that fits the image inside the
+% instruction rectangle while preserving its aspect ratio.
 scale = min( ...
     (Layout.instruction(3) - Layout.instruction(1)) / imageWidth, ...
     (Layout.instruction(4) - Layout.instruction(2)) / imageHeight);
 
+
 drawWidth  = imageWidth  * scale;
 drawHeight = imageHeight * scale;
+
 
 instructionRect = CenterRectOnPoint( ...
     [0 0 drawWidth drawHeight], ...
     mean(Layout.instruction([1 3])), ...
     mean(Layout.instruction([2 4])));
 
-Screen('DrawTexture', ...
+
+Screen( ...
+    'DrawTexture', ...
     T.window, ...
     textureID, ...
     [], ...
     instructionRect);
 
+
+% Texture is no longer needed after it has been queued for drawing.
 Screen('Close', textureID);
 
 
@@ -45,52 +76,98 @@ Screen('Close', textureID);
 
 for question = 1:P.Questionnaire.nQuestions
 
-    %% Question image
+
+    %% ----------------------------------------------------------
+    % Question Image
+    % -----------------------------------------------------------
 
     [textureID, imageWidth, imageHeight] = ...
-        readimg(questionFiles{question + 1}, T.window);
+        readimg( ...
+            questionFiles{question + 1}, ...
+            T.window);
+
 
     scale = min( ...
-        (Layout.question(question, 3) - Layout.question(question, 1)) ...
-            / imageWidth, ...
-        (Layout.question(question, 4) - Layout.question(question, 2)) ...
-            / imageHeight);
+        (Layout.question(question, 3) - ...
+         Layout.question(question, 1)) / imageWidth, ...
+        ...
+        (Layout.question(question, 4) - ...
+         Layout.question(question, 2)) / imageHeight);
+
 
     drawWidth  = imageWidth  * scale;
     drawHeight = imageHeight * scale;
+
 
     questionRect = CenterRectOnPoint( ...
         [0 0 drawWidth drawHeight], ...
         mean(Layout.question(question, [1 3])), ...
         mean(Layout.question(question, [2 4])));
 
-    Screen('DrawTexture', ...
+
+    Screen( ...
+        'DrawTexture', ...
         T.window, ...
         textureID, ...
         [], ...
         questionRect);
 
+
     Screen('Close', textureID);
 
 
-    %% Response buttons
+    %% ----------------------------------------------------------
+    % Response Buttons
+    % -----------------------------------------------------------
 
     for scalePoint = 1:P.Questionnaire.nScalePoints
 
-        rect = Layout.button(question, scalePoint, :);
+
+        % Layout.button is stored as:
+        %
+        %   question x scalePoint x rectangleCoordinate
+        %
+        % Convert the selected rectangle into a 1 x 4 vector.
+        rect = Layout.button( ...
+            question, ...
+            scalePoint, ...
+            :);
+
         rect = rect(:)';
 
 
-        % Normal button border
+        %% ------------------------------------------------------
+        % Normal Button Border
+        % -------------------------------------------------------
 
-        Screen('FrameRect', ...
+        Screen( ...
+            'FrameRect', ...
             T.window, ...
             P.Screen.textColor, ...
             rect, ...
             P.Questionnaire.Layout.buttonBorderWidth);
 
 
-        % Button number
+        %% ------------------------------------------------------
+        % Button Number
+        % -------------------------------------------------------
+
+        % DrawFormattedText argument order:
+        %
+        %   win
+        %   text
+        %   sx
+        %   sy
+        %   color
+        %   wrapat
+        %   flipHorizontal
+        %   flipVertical
+        %   vSpacing
+        %   righttoleft
+        %   winRect
+        %
+        % The empty righttoleft argument is important.
+        % Without it, rect is interpreted as the righttoleft flag.
 
         DrawFormattedText( ...
             T.window, ...
@@ -98,28 +175,37 @@ for question = 1:P.Questionnaire.nQuestions
             'center', ...
             'center', ...
             P.Screen.textColor, ...
-            [], ...
-            [], ...
-            [], ...
-            [], ...
-            rect);
+            [], ...    % wrapat
+            [], ...    % flipHorizontal
+            [], ...    % flipVertical
+            [], ...    % vSpacing
+            [], ...    % righttoleft
+            rect);     % winRect
 
 
-        % Highlight selected response
+        %% ------------------------------------------------------
+        % Highlight Selected Response
+        % -------------------------------------------------------
 
         if ~isnan(response(question)) && ...
                 response(question) == scalePoint
 
-            Screen('FrameRect', ...
+
+            Screen( ...
+                'FrameRect', ...
                 T.window, ...
                 P.Questionnaire.Layout.selectedColor, ...
                 rect, ...
                 P.Questionnaire.Layout.selectedBorderWidth);
 
+
         end
+
 
     end
 
+
 end
+
 
 end

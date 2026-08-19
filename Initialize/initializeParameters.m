@@ -143,6 +143,17 @@ P.Choice.Layout.fixationColor       = [0 1 0];
 P.Choice.Layout.fixationBorderWidth = 3;
 P.Choice.Layout.fixationCrossWidth  = 3;
 
+%% Choice Response Highlighting
+
+P.Choice.Highlight.hoverColor    = [255 255 0];   % Yellow
+P.Choice.Highlight.selectedColor = [0 255 0];     % Green
+
+P.Choice.Highlight.borderWidth = 5;
+
+% How long the green selection confirmation remains visible
+P.Choice.Highlight.feedbackDuration = 0.25;
+
+
 % Choice Task Timing
 P.Choice.fixationDuration       = 1.0;
 P.Choice.exposureDuration       = 8.0;
@@ -186,10 +197,11 @@ P.Questionnaire.Layout.buttonBorderWidth = 2;
 P.Questionnaire.Layout.selectedColor = [0 1 0];
 P.Questionnaire.Layout.selectedBorderWidth = 4;
 
+
+%% Questionnaire Files
 P.Questionnaire.questionFiles = { ...
     fullfile(root, 'Instructions', 'Q0.png'), ...
     fullfile(root, 'Instructions', 'Q1.png'), ...
     fullfile(root, 'Instructions', 'Q2.png'), ...
     fullfile(root, 'Instructions', 'Q3.png')};
-
 end

@@ -1,95 +1,217 @@
 function [response, RT] = collectChoiceResponse( ...
-    window, Layout, stimulusLocations, ...
-    choiceOnset, choiceDuration)
+    window, baseWindow, Layout, stimulusLocations, ...
+    choiceOnset, choiceDuration, Highlight)
 
-% collectChoiceResponse  Collect a mouse response during the choice period.
+% collectChoiceResponse  Collect an interactive choice response.
 %
 %   [response, RT] = collectChoiceResponse( ...
-%       window, Layout, stimulusLocations, ...
-%       choiceOnset, choiceDuration)
+%       window, baseWindow, Layout, stimulusLocations, ...
+%       choiceOnset, choiceDuration, Highlight)
 %
-%   Only clicks on locations that contain stimuli are accepted.
+%   During the response phase:
 %
-%   If no valid response occurs before choiceDuration expires:
+%       1. Yellow border begins on the fixation cell.
+%       2. Yellow border moves to a valid stimulus cell when hovered.
+%       3. If the mouse leaves all valid cells, the yellow border
+%          returns to fixation.
+%       4. Clicking a valid stimulus turns its border green.
 %
-%       response = []
-%       RT       = NaN
+%   Only occupied stimulus locations can be selected.
 %
 %   Inputs:
-%       window            - Psychtoolbox window pointer.
+%       window            - Onscreen Psychtoolbox window.
+%       baseWindow        - Cached choice display in an offscreen window.
 %       Layout            - Pixel-based choice-task layout.
-%       stimulusLocations - Indices of locations containing stimuli.
-%       choiceOnset       - Choice-screen onset timestamp.
-%       choiceDuration    - Maximum choice-response duration.
+%       stimulusLocations - Indices containing actual stimuli.
+%       choiceOnset       - Response-phase onset timestamp.
+%       choiceDuration    - Maximum response duration.
+%       Highlight         - Highlight parameter structure.
 %
 %   Outputs:
-%       response          - Selected spatial location index.
-%       RT                - Response time in seconds.
+%       response          - Selected spatial location.
+%       RT                - Response time from choice onset.
 
 
 %% ==============================================================
 % Initialize
 % ==============================================================
-
 response = [];
 RT = NaN;
 
+% 0 means the initial fixation highlight is currently visible.
+% [] means no highlight is visible.
+% Positive values are valid stimulus locations.
+currentHighlight = 0;
+
+
 
 %% ==============================================================
-% Collect Response
+% Mouse State
+% ==============================================================
+
+% Do not allow a button that was already held before response onset
+% to count as a choice.
+[~, ~, buttons] = GetMouse(window);
+
+mouseArmed = ~any(buttons);
+
+
+%% ==============================================================
+% Response Loop
 % ==============================================================
 
 while isempty(response)
 
-    % Check timeout before reading another response.
+
+    %% ----------------------------------------------------------
+    % Timeout
+    % -----------------------------------------------------------
+
     if GetSecs - choiceOnset >= choiceDuration
         break;
     end
 
 
+    %% ----------------------------------------------------------
+    % Read Mouse
+    % -----------------------------------------------------------
+
     [x, y, buttons] = GetMouse(window);
 
 
-    if any(buttons)
+    %% ----------------------------------------------------------
+    % Arm Mouse After Release
+    % -----------------------------------------------------------
 
-        % Only occupied stimulus locations are valid choices.
-        for i = stimulusLocations
+    if ~mouseArmed
 
-            if IsInRect( ...
-                    x, ...
-                    y, ...
-                    Layout.rect(i, :))
+        if ~any(buttons)
+            mouseArmed = true;
+        end
 
-                response = i;
-                RT = GetSecs - choiceOnset;
+        continue;
 
-                break;
+    end
 
-            end
+
+    %% ----------------------------------------------------------
+    % Determine Hover Location
+    % -----------------------------------------------------------
+
+    hoverLocation = [];
+
+    for i = stimulusLocations
+
+        if IsInRect( ...
+                x, ...
+                y, ...
+                Layout.rect(i, :))
+
+            hoverLocation = i;
+            break;
 
         end
 
     end
 
-end
+    %% ----------------------------------------------------------
+    % Update Hover Display
+    % -----------------------------------------------------------
+
+    if ~isequal(hoverLocation, currentHighlight)
+
+        % Restore the clean response display.
+        Screen( ...
+            'CopyWindow', ...
+            baseWindow, ...
+            window);
 
 
-%% ==============================================================
-% Wait for Mouse Release
-% ==============================================================
+        % Only draw a yellow border when the mouse is
+        % over a valid stimulus location.
+        if ~isempty(hoverLocation)
 
-% Prevent the choice click from carrying into the questionnaire.
-if ~isempty(response)
+            drawResponseHighlight( ...
+                window, ...
+                Layout.rect(hoverLocation, :), ...
+                Highlight.hoverColor, ...
+                Highlight.borderWidth);
 
-    [~, ~, buttons] = GetMouse(window);
+        end
 
-    while any(buttons)
 
-        WaitSecs(0.001);
+        Screen('Flip', window);
+
+        currentHighlight = hoverLocation;
+
+    end
+
+
+    %% ----------------------------------------------------------
+    % Valid Click
+    % -----------------------------------------------------------
+
+    if any(buttons) && ~isempty(hoverLocation)
+
+        response = hoverLocation;
+        RT = GetSecs - choiceOnset;
+
+
+        %% ------------------------------------------------------
+        % Green Selection Feedback
+        % -------------------------------------------------------
+
+        Screen( ...
+            'CopyWindow', ...
+            baseWindow, ...
+            window);
+
+
+        drawResponseHighlight( ...
+            window, ...
+            Layout.rect(response, :), ...
+            Highlight.selectedColor, ...
+            Highlight.borderWidth);
+
+
+        feedbackOnset = Screen('Flip', window);
+
+
+        %% ------------------------------------------------------
+        % Wait for Mouse Release
+        % -------------------------------------------------------
 
         [~, ~, buttons] = GetMouse(window);
 
+        while any(buttons)
+
+            WaitSecs(0.001);
+
+            [~, ~, buttons] = GetMouse(window);
+
+        end
+
+
+        %% ------------------------------------------------------
+        % Keep Green Feedback Visible Long Enough to Perceive
+        % -------------------------------------------------------
+
+        remainingFeedback = ...
+            Highlight.feedbackDuration - ...
+            (GetSecs - feedbackOnset);
+
+
+        if remainingFeedback > 0
+
+            WaitSecs(remainingFeedback);
+
+        end
+
+
+        break;
+
     end
+
 
 end
 

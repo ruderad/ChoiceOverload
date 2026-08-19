@@ -14,30 +14,21 @@ function trial = runChoiceTrial( ...
 %       Exposure
 %       Mask
 %       Choice fixation
-%       Choice
+%       Response phase
 %       Questionnaire
 %
-%   If no valid choice response is made before the choice timeout,
-%   the trial is marked as missed and the questionnaire is skipped.
+%   Response phase:
 %
-%   Inputs:
-%       P                   - Parameter structure.
-%       T                   - Task structure.
-%       ChoiceSet           - Vector containing stimulus image IDs.
-%       condition           - Condition label for the current trial.
-%       ChoiceLayout        - Pixel-based choice-task layout.
-%       QuestionnaireLayout - Pixel-based questionnaire layout.
-%       questionFiles       - Questionnaire image file paths.
+%       Yellow fixation border
+%           ->
+%       Yellow hovered-stimulus border
+%           ->
+%       Green selected-stimulus border
 %
-%   Output:
-%       trial.choiceSet
-%       trial.condition
-%       trial.positions
-%       trial.response
-%       trial.selectedImage
-%       trial.RT
-%       trial.question.response
-%       trial.question.RT
+%   No yellow highlighting is shown during exposure.
+%
+%   If no valid response is made before the choice timeout,
+%   the questionnaire is skipped.
 
 
 %% ==============================================================
@@ -81,7 +72,8 @@ Screen( ...
     P.Screen.backgroundColor);
 
 
-% Fixation tile
+%% Fixation tile
+
 Screen( ...
     'FillRect', ...
     T.window, ...
@@ -89,7 +81,8 @@ Screen( ...
     ChoiceLayout.fixation);
 
 
-% Horizontal fixation line
+%% Horizontal fixation line
+
 Screen( ...
     'DrawLine', ...
     T.window, ...
@@ -101,7 +94,8 @@ Screen( ...
     P.Choice.Layout.fixationCrossWidth);
 
 
-% Vertical fixation line
+%% Vertical fixation line
+
 Screen( ...
     'DrawLine', ...
     T.window, ...
@@ -121,6 +115,9 @@ WaitSecs(P.Choice.fixationDuration);
 %% ==============================================================
 % Exposure
 % ==============================================================
+
+% IMPORTANT:
+% No yellow response highlighting exists in this phase.
 
 drawChoiceSet( ...
     P, ...
@@ -145,8 +142,6 @@ Screen( ...
     P.Screen.backgroundColor);
 
 
-% ChoiceLayout.rect is nLocations x 4.
-% Screen expects multiple rectangles as 4 x nLocations.
 Screen( ...
     'FillRect', ...
     T.window, ...
@@ -169,7 +164,8 @@ Screen( ...
     P.Screen.backgroundColor);
 
 
-% Fixation border
+%% Fixation border
+
 Screen( ...
     'FrameRect', ...
     T.window, ...
@@ -178,7 +174,8 @@ Screen( ...
     P.Choice.Layout.fixationBorderWidth);
 
 
-% Horizontal fixation line
+%% Horizontal fixation line
+
 Screen( ...
     'DrawLine', ...
     T.window, ...
@@ -190,7 +187,8 @@ Screen( ...
     P.Choice.Layout.fixationCrossWidth);
 
 
-% Vertical fixation line
+%% Vertical fixation line
+
 Screen( ...
     'DrawLine', ...
     T.window, ...
@@ -208,18 +206,52 @@ WaitSecs(P.Choice.choiceFixationDuration);
 
 
 %% ==============================================================
-% Choice Screen
+% Prepare Cached Response Display
 % ==============================================================
 
+% Create an offscreen window with the same dimensions as the
+% participant's display.
+responseBuffer = Screen( ...
+    'OpenOffscreenWindow', ...
+    T.window, ...
+    P.Screen.backgroundColor);
+
+
+% drawChoiceSet expects the target window inside T.
+% Make a temporary copy that points to the offscreen window.
+bufferT = T;
+bufferT.window = responseBuffer;
+
+
+% Draw the complete clean choice screen once.
 drawChoiceSet( ...
     P, ...
-    T, ...
+    bufferT, ...
     stimulusIDs, ...
     ChoiceLayout, ...
     positions);
 
 
-% Use the actual flip timestamp as the response-time origin.
+%% ==============================================================
+% Response Phase
+% ==============================================================
+
+% Restore clean response display from the cached buffer.
+Screen( ...
+    'CopyWindow', ...
+    responseBuffer, ...
+    T.window);
+
+
+% Response phase begins with the yellow border on fixation.
+drawResponseHighlight( ...
+    T.window, ...
+    ChoiceLayout.fixation, ...
+    P.Choice.Highlight.hoverColor, ...
+    P.Choice.Highlight.borderWidth);
+
+
+% Actual response onset timestamp.
 choiceOnset = Screen('Flip', T.window);
 
 
@@ -229,14 +261,23 @@ choiceOnset = Screen('Flip', T.window);
 
 [response, RT] = collectChoiceResponse( ...
     T.window, ...
+    responseBuffer, ...
     ChoiceLayout, ...
     positions.stimulus, ...
     choiceOnset, ...
-    P.Choice.choiceDuration);
+    P.Choice.choiceDuration, ...
+    P.Choice.Highlight);
 
 
 trial.response = response;
 trial.RT = RT;
+
+
+%% ==============================================================
+% Close Cached Response Display
+% ==============================================================
+
+Screen('Close', responseBuffer);
 
 
 %% ==============================================================
@@ -248,7 +289,6 @@ if isempty(response)
     trial.selectedImage = NaN;
 
     % Questionnaire fields already contain NaN values.
-    % Skip the questionnaire for a missed choice.
     return;
 
 end
@@ -264,8 +304,6 @@ stimulusIndex = find( ...
     'first');
 
 
-% This should never occur because collectChoiceResponse only accepts
-% occupied stimulus locations. Keep this check to catch future errors.
 if isempty(stimulusIndex)
 
     error( ...

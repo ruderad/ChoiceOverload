@@ -4,14 +4,14 @@ function R = taskChoice(R, P, T, ChoiceSets)
 %
 %   R = taskChoice(R, P, T, ChoiceSets)
 %
-%   Creates the choice-task and questionnaire layouts, loads the
-%   questionnaire file paths, and runs all choice blocks.
+%   Creates the choice-task and questionnaire layouts and runs all
+%   configured choice blocks.
 %
 %   Inputs:
 %       R          - Results structure.
 %       P          - Parameter structure.
 %       T          - Task structure.
-%       ChoiceSets - Cell array containing the choice sets for each
+%       ChoiceSets - Cell array containing choice sets for each
 %                    set-size block.
 %
 %   Output:
@@ -47,25 +47,31 @@ QuestionnaireLayout = convertQuestionnaireLayout( ...
 % Questionnaire Files
 % ==============================================================
 
-questionFiles = cell( ...
-    1, ...
-    P.Questionnaire.nQuestions + 1);
+questionFiles = P.Questionnaire.questionFiles;
 
 
-for q = 0:P.Questionnaire.nQuestions
+% Check expected number of files.
+expectedFileCount = P.Questionnaire.nQuestions + 1;
 
-    questionFiles{q + 1} = fullfile( ...
-        P.Experiment.root, ...
-        'Instrctions', ...
-        sprintf('Q%d.png', q));
+if numel(questionFiles) ~= expectedFileCount
+
+    error( ...
+        ['Expected %d questionnaire image files, ' ...
+         'but P.Questionnaire.questionFiles contains %d.'], ...
+        expectedFileCount, ...
+        numel(questionFiles));
+
+end
 
 
-    % Check that the questionnaire image exists.
-    if ~isfile(questionFiles{q + 1})
+% Check that every questionnaire image exists.
+for q = 1:numel(questionFiles)
+
+    if ~isfile(questionFiles{q})
 
         error( ...
             'Questionnaire image not found: %s', ...
-            questionFiles{q + 1});
+            questionFiles{q});
 
     end
 

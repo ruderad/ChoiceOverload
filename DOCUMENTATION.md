@@ -1,738 +1,1239 @@
 # Choice Overload Experiment
+## Documentation by Radmehr Bahrami
 
-A modular MATLAB/Psychtoolbox implementation of a personalized choice overload experiment for EEG and eye-tracking.
-
----
-
-# Project Philosophy
-
-This project follows several guiding principles:
-
-1. Only three global structures exist:
-   - `P` : Parameters (read-only after initialization)
-   - `R` : Results (all analyzable data)
-   - `T` : Task (runtime objects and temporary variables)
-
-2. Every function has a single responsibility.
-
-3. Experimental parameters are defined only once inside
-   `initializeParameters.m`.
-
-4. `main.m` is the only script responsible for orchestrating the experiment.
-
-5. Functions receive only the structures they actually require.
-
-6. No hard-coded experimental parameters.
+A modular MATLAB/Psychtoolbox implementation of a personalized choice-overload experiment designed for behavioral and EEG data collection.
 
 ---
 
-# Folder Structure
+# 1. Project Architecture
 
+The experiment uses three main structures:
+
+```text
+P = Parameters
+R = Results
+T = Runtime task state
 ```
-ChoiceOverload/
 
+## `P` — Parameters
+
+`P` contains experiment configuration.
+
+Examples include:
+
+* screen settings
+* stimulus paths
+* trial numbers
+* timing values
+* task layout parameters
+* response colors
+* questionnaire settings
+
+`P` is created by:
+
+```matlab
+initializeParameters
+```
+
+Functions should not modify experimental parameters during task execution.
+
+---
+
+## `R` — Results
+
+`R` contains all participant data that must be saved or analyzed.
+
+Examples include:
+
+* participant information
+* preference ratings
+* reaction times
+* choice conditions
+* selected images
+* questionnaire responses
+
+`R` is initialized by:
+
+```matlab
+initializeResults
+```
+
+---
+
+## `T` — Runtime Task State
+
+`T` contains temporary Psychtoolbox and runtime information.
+
+Examples include:
+
+* window pointer
+* screen dimensions
+* window rectangle
+* screen center
+* frame interval
+* frame rate
+
+`T` is created by:
+
+```matlab
+initializeTask
+```
+
+---
+
+# 2. General Design Principles
+
+The code follows these rules:
+
+1. Each function has one main responsibility.
+2. Experimental parameters are stored in `P`.
+3. Participant results are stored in `R`.
+4. Runtime Psychtoolbox objects are stored in `T`.
+5. `main.m` controls the experiment sequence.
+6. Spatial-layout creation is separate from pixel conversion.
+7. Drawing logic is separate from response collection where practical.
+8. Choice-set generation is separate from choice presentation.
+9. Only occupied stimulus locations can produce valid choice responses.
+10. Visual response feedback is controlled independently from stimulus drawing.
+
+---
+
+# 3. Experiment Sequence
+
+The complete experiment follows this sequence:
+
+```text
 main.m
-
-initialize/
-tasks/
-modules/
-utilities/
-stimuli/
-data/
-analysis/
+  |
+  +-- initializeParameters
+  |
+  +-- initializeResults
+  |
+  +-- collectSubjectInfo
+  |
+  +-- initializeTask
+  |
+  +-- taskPreferenceRating
+  |
+  +-- makeChoiceSets
+  |
+  +-- taskChoice
+  |      |
+  |      +-- choice trials
+  |      |
+  |      +-- questionnaire after successful choices
+  |
+  +-- cleanupTask
+  |
+  +-- saveResults
 ```
 
 ---
-# Modules used in each task
 
-## general experiment level functions
+# 4. Main Folder Structure
 
-```
-collectSubjectInfo.m
-saveResults.m
+```text
+ChoiceOverload/
+│
+├── main.m
+├── CHANGELOG.md
+├── DOCUMENTATION.md
+│
+├── Initialize/
+│   ├── initializeParameters.m
+│   ├── initializeResults.m
+│   ├── initializeTask.m
+│   └── cleanupTask.m
+│
+├── Tasks/
+│   ├── taskPreferenceRating.m
+│   └── taskChoice.m
+│
+├── Modules/
+│   ├── rating-task modules
+│   ├── choice-task modules
+│   └── questionnaire modules
+│
+├── Utilities/
+│   └── shared helper functions
+│
+├── Stimuli/
+│   └── mug images
+│
+├── Instructions/
+│   └── questionnaire images
+│
+└── data/
+    └── participant result files
 ```
 
-## PreferenceRatingTask
+Questionnaire instruction and item images are stored in:
+
+Instructions/
+
+Their paths are defined once in:
+
+P.Questionnaire.questionFiles
+---
+
+# 5. Initialization
+
+## `initializeParameters.m`
+
+Creates the experiment parameter structure:
+
+```matlab
+P
 ```
 
-drawRatingScreen.m      : Draw stimuli and slider
-collectSliderResponse.m : Collect subject response
-runRatingPractice.m     : Run pracitce round
-runRatingTrial.m        : Run a single trial
-runRatingRound.m        : Run the whole round
-computeAverageRating.m  : Compute average rating for each stimulus
-taskPreferenceRating.m  : Run the whole task
-```
-## ChoiceTask
-```
-makeChoiceSets.m           : Curate 45 personalized choice sets of 5 conditions 
-selectClosetToRange.m      : Finds closest missing values from neighbering class
-makeChoiceLayout.m         : Defines the locations
-convertChoiceLayout.m      : Convert geometry to pixels
-randomizeChoicePositions.m : Decide which locations are occupied
-DrawChoiceSet.m            : Draw stimuli and masks
-collectChoiceResponse.m    : Collect subject's response
-runChoiceTrial.m           : Run a single trial
-runChoiceBlock.m           : Run the whole block
-taskChoice                 : Run the whole task
-```
-## Questionnaire
-```
-makeQuestionnaireLayout
-convertQuestionnaireLayout
-drawQuestionnaire
-collectQuestionnaireResponse
-runQuestionnaire
- ```
+Important parameter groups include:
 
-
+```text
+P.Experiment
+P.Debug
+P.Screen
+P.Images
+P.Timing
+P.Message
+P.Preference
+P.Choice
+P.Questionnaire
+```
 
 ---
 
-# File Descriptions
+## `initializeResults.m`
 
-## main.m
+Creates the initial results structure.
 
-Entry point of the experiment.
+Main result groups are:
 
-Responsibilities:
+```text
+R.Subject
+R.Preference
+R.Choice
+```
 
-- Adds project folders to MATLAB path.
-- Initializes P, R and T.
-- Executes each experimental task.
-- Handles errors.
-- Performs cleanup.
-
----
-
-## initialize/initializeParameters.m
-
-Creates the `P` structure.
-
-Contains all experiment configuration including:
-
-- experiment metadata
-- screen parameters
-- image information
-- preference task parameters
-- debug settings
-
-No function should ever modify `P` after initialization.
+Questionnaire results are stored inside each choice trial.
 
 ---
 
-## initialize/initializeResults.m
-
-Creates the `R` structure.
-
-Preallocates storage for all behavioral results generated during the experiment.
-
----
-
-## initialize/initializeTask.m
+## `initializeTask.m`
 
 Initializes Psychtoolbox.
 
-Responsibilities:
+Responsibilities include:
 
-- initialize PTB
-- open display window
-- configure keyboard
-- hide cursor
-- populate `T`
+* Psychtoolbox setup
+* screen creation
+* keyboard configuration
+* cursor state
+* screen geometry
+* frame interval calculation
 
----
+Important fields include:
 
-## initialize/cleanupTask.m
-
-Safely closes the experiment.
-
-Responsibilities:
-
-- close PTB window
-- restore keyboard
-- show cursor
-
-Always called after the experiment finishes or crashes.
-
----
-
-## tasks/taskPreferenceRating.m
-
-Top-level controller for the preference rating task.
-
-Responsibilities:
-- execute practice round
-- execute Rating Round 1
-- execute Rating Round 2
-- compute average ratings
-
-Contains no experimental logic itself.
-
----
-## module/runRatingPractice.m
-
-makes the practice round. 
-
-- `nPracticeTrials` configurable in `P`, default is `5`
-- practice images excluded from experimental pool 
-
----
-
-## modules/runRatingRound.m
-
-Runs one complete rating round.
-
-Responsibilities:
-
-- randomize presentation order
-- call `runRatingTrial`
-- save ratings and reaction times
-
----
-
-## modules/runRatingTrial.m
-
-Runs one rating trial.
-
-Responsibilities:
-
-- load image
-- scale image
-- display image
-- collect participant response
-- return rating and reaction time
-
----
-
-## modules/drawRatingScreen.m
-
-Draws one frame of the rating screen.
-
-Responsibilities:
-
-- draw image
-- draw rating scale
-- draw slider
-- draw progress indicator
-- flip screen
-
-Contains no keyboard logic.
-
----
-
-## modules/collectSliderResponse.m
-
-Handles participant interaction.
-
-Responsibilities:
-
-- initialize slider
-- update slider position
-- redraw screen
-- confirm response
-- measure reaction time
-
-Returns:
-
-- rating
-- RT
-
----
-
-## modules/collectSubjectInfo.m
-
-Simple experimenter form for entering participant information.
-
- OUTPUT
-   Subject.ID
-   Subject.Age
-   Subject.Sex
-   Subject.Handedness
-
- aborted = true if Cancel is pressed.
-
----
-
-## modules/computeAverageRating.m
-
-Computes the average preference rating across both rounds.
-
-Stores the result in
-
+```text
+T.window
+T.windowRect
+T.width
+T.height
+T.centerX
+T.centerY
+T.ifi
+T.frameRate
 ```
+
+---
+
+## `cleanupTask.m`
+
+Restores the computer after the task ends or an error occurs.
+
+Typical responsibilities are:
+
+* close Psychtoolbox screens
+* restore keyboard input
+* restore cursor visibility
+
+---
+
+# 6. Participant Information
+
+## `collectSubjectInfo.m`
+
+Collects participant metadata before Psychtoolbox task presentation begins.
+
+Stored values include:
+
+```text
+R.Subject.ID
+R.Subject.Age
+R.Subject.Sex
+R.Subject.Handedness
+```
+
+The experiment can terminate safely if the form is cancelled.
+
+---
+
+# 7. Preference-Rating Task
+
+The first experimental task measures participant preference for the mug stimuli.
+
+The resulting ratings are later used to generate personalized choice sets.
+
+## Main Controller
+
+```matlab
+taskPreferenceRating
+```
+
+Responsibilities:
+
+* run practice trials
+* run experimental rating rounds
+* calculate average stimulus ratings
+* update `R.Preference`
+
+---
+
+## Preference Task Modules
+
+```text
+drawRatingScreen.m
+collectSliderResponse.m
+runRatingPractice.m
+runRatingTrial.m
+runRatingRound.m
+computeAverageRating.m
+taskPreferenceRating.m
+```
+
+---
+
+## Rating Results
+
+For each stimulus, the task stores:
+
+* preference rating
+* reaction time
+
+The final average rating is stored in:
+
+```matlab
 R.Preference.average
 ```
 
----
-
-## modules/saveResults.m
-
-Saves the complete results structure for one participant.
-
- INPUT
-   R       - Results structure
-   root    - Experiment root directory
-
- Results are saved as:
-
-   <root>/data/<SubjectID>.mat
+This vector is indexed by stimulus ID.
 
 ---
 
-## tasks/taskChoice.m
+# 8. Personalized Choice-Set Generation
 
-Top-level controller for the choice task.
+## `makeChoiceSets.m`
 
-% taskChoice  Run the choice task.
-%
-%   R = taskChoice(P, R, window, textures, ChoiceSets, maskTexture)
-%
-%   Runs the three choice-task blocks in the order specified by
-%   P.Choice.blockOrder and stores the results in R.Choice.
-%
-%   Inputs:
-%       P           - Parameter structure.
-%       R           - Results structure.
-%       window      - Psychtoolbox window pointer.
-%       textures    - PTB textures indexed by image ID.
-%       ChoiceSets  - Cell array containing the prepared choice sets
-%                     for each set size.
-%       maskTexture - PTB texture used for empty locations.
-%
-%   Output:
-%       R           - Updated results structure.
-%
-%   ChoiceSets are organized by set-size index:
-%
-%       ChoiceSets{1} -> 6-item trials
-%       ChoiceSets{2} -> 12-item trials
-%       ChoiceSets{3} -> 24-item trials
-%
-%   The function only handles block execution and result storage.
+Generates personalized choice sets from:
 
+```matlab
+R.Preference.average
+```
 
----
-## makeChoiceSets.m
+Supported set sizes are configured by:
 
- makeChoiceSets  Generate choice sets for one set-size block.
+```matlab
+P.Choice.setSizes
+```
 
-   ChoiceSets = makeChoiceSets(ratings, setSize)
+The current default set sizes are:
 
-   Generates 45 choice sets for the specified set size:
-       5  Uniform Least      (UL)
-       5  Uniform Moderate   (UM)
-       5  Uniform High       (UH)
-       15 Clearly Favored    (CF)
-       15 Random Set         (RS)
+```matlab
+[6 12 24]
+```
 
-   Uniform conditions select stimuli closest to their intended rating
-   range. If insufficient stimuli are available within the target range,
-  the closest available ratings are used as substitutes.
-
-   Inputs:
-       ratings  - Vector of stimulus ratings (1-7), indexed by stimulus ID.
-       setSize  - Number of stimuli in each choice set.
-
-   Output:
-       ChoiceSets - Struct array containing the condition and stimulus
-                    IDs for each of the 45 choice sets.
+Each set-size block contains 45 trials.
 
 ---
 
-## modules/selectClosestToRange.m
+## Choice Conditions
 
-selectClosestToRange  Select stimuli closest to a target rating range.
+### `UL` — Uniform Least
 
-   ids = selectClosestToRange(ratings, targetRange, n)
+Stimuli are selected from the lowest preference range.
 
-   Selects n rated stimuli whose ratings are closest to the specified
-   target range. Stimuli inside the target range are always preferred.
-   If additional stimuli are needed, stimuli outside the range are
-   selected according to their distance from the range.
+### `UM` — Uniform Moderate
 
-   When multiple stimuli have the same distance from the target range,
-   selection among them is randomized.
+Stimuli are selected from the moderate preference range.
 
-   Inputs:
-       ratings     - Vector of stimulus ratings, indexed by stimulus ID.
-       targetRange - Two-element vector defining the desired rating range.
-       n           - Number of stimuli to select.
+### `UH` — Uniform High
 
-   Output:
-       ids         - Stimulus IDs of the selected images.
+Stimuli are selected from the highest preference range.
 
----
-## modules/makeChoiceLayout.m
+### `CF` — Clearly Favored
 
-makeChoiceLayout  Generate the fixed spatial layout for the choice task.
-%
-%   Layout = makeChoiceLayout(P)
-%
-%   Generates the fixed 30-location spatial layout used by the choice
-%   task. The layout consists of 6 columns and 5 rows, with the stimulus
-%   regions symmetrically distributed around a central fixation region.
-%
-%   All coordinates are normalized to the screen:
-%       x = -0.5 ... +0.5
-%       y = -0.5 ... +0.5
-%
-%   Inputs:
-%       P       - Parameter structure containing Choice.Layout settings.
-%
-%   Output:
-%       Layout  - Structure containing:
-%                   .rect      30 × 4 matrix of stimulus rectangles
-%                   .fixation  1 × 4 fixation rectangle
-%
-%   Rectangle format:
-%       [left top right bottom]
-%
-%   The function only defines spatial geometry. It does not assign
-%   stimuli, conditions, set sizes, or masks to locations.
+One highly preferred stimulus is presented with lower-rated alternatives.
 
----
-## modules/convertChoiceLayout.m
+### `RS` — Random Set
 
-function Layout = convertChoiceLayout(Layout, screenRect)
-
-% convertChoiceLayout  Convert normalized layout coordinates to pixels.
-%
-%   Layout = convertChoiceLayout(Layout, screenRect)
-%
-%   Converts the normalized coordinates produced by makeChoiceLayout
-%   into Psychtoolbox pixel coordinates.
-%
-%   Normalized coordinates:
-%       x = -0.5 ... +0.5
-%       y = -0.5 ... +0.5
-%
-%   Inputs:
-%       Layout      - Layout generated by makeChoiceLayout.
-%       screenRect  - Psychtoolbox screen rectangle:
-%                     [left top right bottom]
-%
-%   Output:
-%       Layout      - Layout with pixel-based rectangles.
-%
-%   The normalized layout is overwritten with pixel coordinates.
-
----
-## modules/randomizeChoicePositions.m
-
-function positions = randomizeChoicePositions(Layout, setSize)
-
-% randomizeChoicePositions  Randomly assign occupied locations.
-%
-%   positions = randomizeChoicePositions(Layout, setSize)
-%
-%   Randomly selects setSize locations from the 30 fixed locations
-%   generated by makeChoiceLayout. The remaining locations are
-%   available for masking.
-%
-%   Inputs:
-%       Layout  - Spatial layout generated by makeChoiceLayout.
-%       setSize - Number of stimuli presented on the current trial.
-%
-%   Output:
-%       positions.stimulus - Indices of occupied locations.
-%       positions.empty     - Indices of unoccupied locations.
-%
-%   The function only handles spatial randomization. It does not assign
-%   stimuli or conditions to the selected locations.
-
----
-## modules/DrawChoiceSet.m
-
-function drawChoiceSet(window, textures, ChoiceSet, Layout, positions, maskTexture)
-
-% drawChoiceSet  Draw one choice-set display.
-%
-%   drawChoiceSet(window, textures, ChoiceSet, Layout, ...
-%                 positions, maskTexture)
-%
-%   Draws the stimuli in ChoiceSet at their assigned locations and
-%   fills all remaining locations with the mask texture.
-%
-%   Inputs:
-%       window      - Psychtoolbox window pointer.
-%       textures    - PTB textures indexed by image ID.
-%       ChoiceSet   - Image IDs belonging to the current trial.
-%       Layout      - Pixel-based layout generated by
-%                     convertChoiceLayout.
-%       positions   - Location assignment generated by
-%                     randomizeChoicePositions.
-%       maskTexture - PTB texture used for empty locations.
-%
-%   The function only draws. It does not randomize, convert coordinates,
-%   collect responses, or modify results.
-
----
-## modules/collectChoiceResponse.m
-
-function [response, RT] = collectChoiceResponse(window, Layout)
-
-% collectChoiceResponse  Collect a mouse click on the choice grid.
-%
-%   [response, RT] = collectChoiceResponse(window, Layout)
-%
-%   Waits for the participant to click one of the 30 cells in the
-%   choice-task grid.
-%
-%   Inputs:
-%       window  - Psychtoolbox window pointer.
-%       Layout  - Pixel-based layout generated by
-%                 convertChoiceLayout.
-%
-%   Outputs:
-%       response - Index of the clicked cell (1 ... 30).
-%       RT       - Response time in seconds.
-%
-%   The function only collects the mouse response. It does not determine
-%   which stimulus occupies the selected location or modify R.
-
----
-## modules/runChoiceTrial.m
-
-function trial = runChoiceTrial( ...
-    window, textures, ChoiceSet, Layout, maskTexture)
-
-% runChoiceTrial  Run one choice-task trial.
-%
-%   trial = runChoiceTrial( ...
-%       window, textures, ChoiceSet, Layout, maskTexture)
-%
-%   Presents one choice set, randomly assigns its stimuli to spatial
-%   locations, displays the choice screen, and collects the participant's
-%   mouse response.
-%
-%   Inputs:
-%       window      - Psychtoolbox window pointer.
-%       textures    - PTB textures indexed by image ID.
-%       ChoiceSet   - Image IDs belonging to the current trial.
-%       Layout      - Pixel-based layout generated by
-%                     convertChoiceLayout.
-%       maskTexture - PTB texture used for empty locations.
-%
-%   Output:
-%       trial       - Structure containing:
-%                       .choiceSet
-%                       .positions
-%                       .response
-%                       .selectedImage
-%                       .RT
-%
-%   The function only handles the sequence of one trial. It does not
-%   generate choice sets, define the layout, or modify R.
-
----
-## modules/runChoiceblock.m
-function block = runChoiceBlock( ...
-    window, textures, ChoiceSets, Layout, maskTexture)
-
-% runChoiceBlock  Run all trials in one choice-task block.
-%
-%   block = runChoiceBlock( ...
-%       window, textures, ChoiceSets, Layout, maskTexture)
-%
-%   Runs every choice trial in the supplied block and stores its results.
-%
-%   Inputs:
-%       window      - Psychtoolbox window pointer.
-%       textures    - PTB textures indexed by image ID.
-%       ChoiceSets  - Cell array containing the choice set for each trial.
-%       Layout      - Pixel-based choice-task layout.
-%       maskTexture - PTB texture used for empty locations.
-%
-%   Output:
-%       block       - Structure containing the results of each trial.
+Stimuli are selected randomly from the available rated stimuli.
 
 ---
 
+## `selectClosestToRange.m`
 
-## utilities/readimg.m
+Selects stimuli closest to a requested rating range.
 
-Loads an image and creates a Psychtoolbox texture.
+If there are not enough stimuli inside the target range, the function uses the nearest available ratings.
+
+This keeps choice-set generation feasible even when participant rating distributions are uneven.
+
+---
+
+# 9. Choice Task Architecture
+
+The choice task is controlled by:
+
+```matlab
+taskChoice
+```
+
+The call hierarchy is:
+
+```text
+taskChoice
+    |
+    v
+runChoiceBlock
+    |
+    v
+runChoiceTrial
+    |
+    +-- collectChoiceResponse
+    |
+    +-- runQuestionnaire
+```
+
+---
+
+# 10. `taskChoice.m`
+
+Function signature:
+
+```matlab
+R = taskChoice(R, P, T, ChoiceSets)
+```
+
+Responsibilities:
+
+* show the mouse cursor
+* construct the choice layout
+* convert the choice layout to pixels
+* construct the questionnaire layout
+* convert the questionnaire layout to pixels
+* resolve questionnaire image paths
+* run the configured choice blocks
+* store block results in `R.Choice`
+* hide the cursor when complete
+
+The block order is controlled by:
+
+```matlab
+P.Choice.blockOrder
+```
+
+---
+
+# 11. Choice Layout
+
+## `makeChoiceLayout.m`
+
+Creates the normalized spatial geometry of the choice screen.
+
+The choice grid contains:
+
+```text
+6 columns
+5 rows
+30 possible stimulus locations
+1 central fixation region
+```
+
+The output includes:
+
+```text
+Layout.rect
+Layout.fixation
+Layout.fixationCross
+```
+
+`Layout.rect` is a:
+
+```text
+30 × 4
+```
+
+matrix.
+
+Each row is:
+
+```text
+[left top right bottom]
+```
+
+---
+
+## `convertChoiceLayout.m`
+
+Converts normalized choice geometry into Psychtoolbox pixel coordinates.
+
+The converted layout is used for:
+
+* stimulus drawing
+* masks
+* fixation
+* mouse hit testing
+* response highlighting
+
+---
+
+## `randomizeChoicePositions.m`
+
+Randomly assigns the stimuli in a trial to available grid cells.
 
 Returns:
 
-- texture ID
-- image width
-- image height
+```matlab
+positions.stimulus
+positions.empty
+```
 
----
-## utilities/normalizeScaleValue.m
+### `positions.stimulus`
 
-%NORMALIZESCALEVALUE Convert a scale value to the interval [0, 1].
-%
-%   normalizedPosition = normalizeScaleValue(value, P)
-%
-%   Linearly maps a value from the preference rating scale defined in
-%   P.Preference to the normalized interval [0, 1]. This is primarily
-%   used to convert rating values into screen coordinates when drawing
-%   the rating scale and slider.
-%
-%   INPUTS
-%       value : Value on the preference scale.
-%       P     : Parameter structure containing:
-%                   P.Preference.min
-%                   P.Preference.max
-%
-%   OUTPUT
-%       normalizedPosition : Value normalized to the interval [0, 1].
-%
-%   EXAMPLE
-%
-%       sliderPosition = normalizeScaleValue(rating, P);
-%       sliderX = x0 + sliderPosition * scaleWidth;
-%
-%   Keeping the normalization logic in a single function ensures that
-%   any future changes to the scale definition are propagated
-%   automatically throughout the experiment.
+Contains locations occupied by real stimuli.
 
----
-## utilities/showBlankScreen.m
+### `positions.empty`
 
-%SHOWBLANKSCREEN Display a blank screen for a fixed duration.
-%
-%   showBlankScreen(duration, P, T)
-%
-%   Clears the display using the experiment background color,
-%   flips the screen, and waits for the specified duration.
-%
-%   INPUTS
-%       duration : Blank interval in seconds.
-%       P        : Parameter structure.
-%       T        : Task structure.
-%
-%   OUTPUTS
-%       None.
-%
-%   EXAMPLE
-%
-%       showBlankScreen(P.Timing.blankITI, P, T);
+Contains unoccupied locations that are shown as masks.
 
----
-## utilities/showMessageScreen.m
+Only locations in:
 
-%SHOWMESSAGESCREEN Display a centered message and wait for SPACE.
-%
-%   showMessageScreen(message, P, T)
-%
-%   Displays one or more lines of text centered on the screen. The
-%   function blocks execution until the participant presses the SPACE
-%   key. Pressing ESCAPE immediately terminates the experiment.
-%
-%   INPUTS
-%       message : Cell array of strings. Each cell represents one line
-%                 of text. Empty strings can be used to insert blank lines.
-%       P       : Parameter structure.
-%       T       : Task structure.
-%
-%   EXAMPLE
-%
-%       showMessageScreen({
-%           'Preference Rating'
-%           ''
-%           'You will see pictures of mugs.'
-%           'Rate how much you like each mug.'
-%           ''
-%           'LEFT / RIGHT   Move Slider'
-%           'SPACE          Confirm Rating'
-%           ''
-%           'Press SPACE to begin.'
-%       }, P, T);
-%
-%   This function is intended to be a generic message renderer for the
-%   entire experiment and can be reused for instructions, break screens,
-%   round transitions, completion messages, calibration prompts, and
-%   other text-only screens.
+```matlab
+positions.stimulus
+```
 
----
-## utilities/getSetRatings.m
-
-function ratings = getSetRatings(ChoiceSets, rating, setIndex)
-
-% getSetRatings  Return stimulus IDs and ratings for a choice set.
-%
-%   ratings = getSetRatings(ChoiceSets, rating, setIndex)
-%
-%   Returns the stimulus IDs and their corresponding ratings for the
-%   specified choice set.
-%
-%   Inputs:
-%       ChoiceSets - Struct array generated by makeChoiceSets.
-%       rating     - Vector of stimulus ratings indexed by stimulus ID.
-%       setIndex   - Index of the choice set to inspect.
-%
-%   Output:
-%       ratings    - Two-column matrix:
-%                    column 1: stimulus IDs
-%                    column 2: ratings
+are valid behavioral choices.
 
 ---
 
-# Data Structures
+# 12. `drawChoiceSet.m`
 
-## P
+Draws one choice display.
 
-Experiment parameters.
+Responsibilities:
 
-Read-only after initialization.
+* load stimulus images
+* fit each image inside its assigned cell
+* draw occupied stimulus cells
+* draw masks in empty cells
+* draw the central fixation tile
+* draw the fixation border
+* draw the fixation cross
+
+The function performs drawing only.
+
+It does not:
+
+* randomize positions
+* collect responses
+* modify results
+
+---
+
+# 13. Choice-Trial Temporal Structure
+
+## `runChoiceTrial.m`
+
+Runs one complete choice trial.
+
+The current sequence is:
+
+```text
+Fixation
+    ↓
+Exposure
+    ↓
+Mask
+    ↓
+Choice fixation
+    ↓
+Response
+    ↓
+Questionnaire
+```
+
+Current default timing values are:
+
+```text
+Fixation:          1.0 s
+Exposure:          8.0 s
+Mask:              0.5 s
+Choice fixation:   1.0 s
+Choice response:   3.0 s
+Questionnaire:     6.0 s
+```
+
+These values are configurable in `P`.
+
+---
+
+# 14. Exposure Phase
+
+During exposure:
+
+* the complete choice set is visible
+* the participant observes the stimuli
+* no yellow response highlight is shown
+* mouse hover does not produce response feedback
+
+The absence of yellow highlighting is intentional.
+
+Yellow indicates that an active choice can be made.
+
+---
+
+# 15. Response-Phase Visual Cue
+
+The response phase has a dedicated visual-feedback system.
+
+Its purpose is to:
+
+* make response onset clear
+* show which item is currently selectable
+* confirm the final choice
+* minimize unnecessary visual transients for EEG recording
+
+---
+
+# 16. Response Highlight State Machine
+
+The interaction follows this sequence:
+
+```text
+EXPOSURE
+    no yellow highlight
+
+        ↓
+
+RESPONSE ONSET
+    yellow fixation border
+
+        ↓
+
+HOVER VALID STIMULUS
+    yellow stimulus border
+
+        ↓
+
+LEAVE VALID STIMULUS
+    no highlight
+
+        ↓
+
+HOVER ANOTHER VALID STIMULUS
+    yellow stimulus border
+
+        ↓
+
+CLICK VALID STIMULUS
+    green stimulus border
+```
+
+## Important EEG Rule
+
+The yellow border around fixation appears only at response onset.
+
+After the participant moves away from a valid stimulus, the highlight disappears.
+
+It does **not** return to fixation.
+
+This prevents repeated fixation-border flashes caused by normal mouse movement.
+
+---
+
+# 17. `drawResponseHighlight.m`
+
+Generic helper function:
+
+```matlab
+drawResponseHighlight( ...
+    window, ...
+    rect, ...
+    color, ...
+    borderWidth)
+```
+
+The helper draws a border around a supplied rectangle.
+
+It does not know whether the rectangle belongs to:
+
+* a choice stimulus
+* fixation
+* a questionnaire button
+
+This makes the helper reusable across tasks.
+
+Current choice-task use:
+
+```text
+Yellow = hover / response availability
+Green  = confirmed selection
+```
+
+---
+
+# 18. Cached Choice Response Screen
+
+The response phase uses an offscreen Psychtoolbox window as a clean cached display.
+
+The full choice screen is drawn once into the offscreen window.
+
+During hover updates:
+
+```text
+cached clean screen
+        ↓
+copy to participant window
+        ↓
+draw current highlight
+        ↓
+flip
+```
+
+This avoids repeatedly:
+
+* reading stimulus files
+* rebuilding textures
+* redrawing the complete choice display from disk
+
+The response loop therefore changes only the visual state that must change.
+
+---
+
+# 19. `collectChoiceResponse.m`
+
+Collects the participant's choice response.
+
+Inputs include:
+
+```text
+onscreen window
+cached response window
+ChoiceLayout
+valid stimulus locations
+choice onset time
+choice duration
+highlight parameters
+```
+
+Responsibilities:
+
+* read mouse position
+* determine whether the mouse is over a valid stimulus
+* update the yellow hover border
+* ignore masked cells
+* detect a valid click
+* calculate reaction time
+* display green selection feedback
+* wait for mouse release
+
+---
+
+## Valid Choice Rule
+
+Only occupied stimulus cells can produce a response.
+
+The valid set is:
+
+```matlab
+positions.stimulus
+```
+
+Clicks on:
+
+* masked cells
+* empty screen regions
+* fixation
+
+do not produce a behavioral response.
+
+---
+
+## Reaction Time
+
+Choice RT is measured from the actual response-screen flip timestamp:
+
+```matlab
+choiceOnset
+```
+
+The stored value is:
+
+```matlab
+trial.RT
+```
+
+---
+
+# 20. Missed Choice Trials
+
+If no valid choice occurs before:
+
+```matlab
+P.Choice.choiceDuration
+```
+
+expires:
+
+```text
+trial.response      = []
+trial.RT            = NaN
+trial.selectedImage = NaN
+```
+
+The questionnaire is skipped.
+
+Questionnaire values remain:
+
+```text
+NaN
+```
+
+for the missed trial.
+
+---
+
+# 21. Choice Result Structure
+
+Each choice trial stores:
+
+```text
+trial.choiceSet
+trial.condition
+trial.positions
+trial.response
+trial.selectedImage
+trial.RT
+trial.question.response
+trial.question.RT
+```
+
+## `trial.choiceSet`
+
+Stimulus IDs shown on that trial.
+
+## `trial.condition`
+
+Choice-set condition:
+
+```text
+UL
+UM
+UH
+CF
+RS
+```
+
+## `trial.positions`
+
+Random spatial assignment.
 
 Contains:
 
-- Experiment
-- Debug
-- Screen
-- Images
-- Preference
-- Choice
-- Questionnaire
+```text
+positions.stimulus
+positions.empty
+```
+
+## `trial.response`
+
+Selected spatial location.
+
+## `trial.selectedImage`
+
+Stimulus ID of the selected image.
+
+## `trial.RT`
+
+Choice reaction time.
+
+## `trial.question.response`
+
+Questionnaire responses associated with the choice.
+
+## `trial.question.RT`
+
+Questionnaire reaction times.
 
 ---
 
-## R
+# 22. `runChoiceBlock.m`
 
-Behavioral results.
+Runs all trials for one set-size block.
 
-Contains only data intended for later analysis.
+Function interface:
+
+```matlab
+block = runChoiceBlock( ...
+    P, ...
+    T, ...
+    ChoiceSets, ...
+    ChoiceLayout, ...
+    QuestionnaireLayout, ...
+    questionFiles)
+```
+
+The function:
+
+1. determines the number of trials
+2. preallocates the full trial result structure
+3. calls `runChoiceTrial` for each trial
+4. stores each returned trial structure
+
+The preallocated structure includes questionnaire fields so trial assignments remain structurally compatible.
 
 ---
 
-## T
+# 23. Questionnaire Architecture
 
-Temporary runtime objects.
+The questionnaire currently appears after every successful choice.
 
-Contains:
+Current module hierarchy:
 
-- PTB window
-- screen geometry
-- progress
-- runtime variables
-
-Can safely be discarded after the experiment ends.
+```text
+makeQuestionnaireLayout
+        ↓
+convertQuestionnaireLayout
+        ↓
+runQuestionnaire
+        |
+        +-- drawQuestionnaire
+        |
+        +-- collectQuestionnaireResponse
+```
 
 ---
 
-# Development Status
+# 24. Questionnaire Images
 
-## Completed
+The questionnaire uses:
 
-- Project architecture
-- Initialization layer
-- Data recording structure
-- Preference rating engine
-- Fully-configurable preference rating task
-- Personalized Choice Set curation engine
-- Fully configutable choice task
-- Questionnaire drawing engine with Perisan questions
-- Whole task from begining to the end 
+```text
+Q0.png
+Q1.png
+Q2.png
+Q3.png 
+```
 
+All questionnaire images are stored in:
+ `Instructions/`
 
-## Planned
+Their full paths are defined once during initialization:
+`P.Questionnaire.questionFiles`
 
-- Farsi Instruction screens
-- Questionnaire
-- EEG triggers
-- Eye-tracker integration
+`Q0` contains the general questionnaire instruction.
+
+`Q1` to `Q3` contain the individual questionnaire items.
+
+`taskChoice.m` validates that all required files exist before the choice blocks begin.
+
+---
+
+# 25. `makeQuestionnaireLayout.m`
+
+Creates normalized questionnaire geometry.
+
+The layout contains:
+
+```text
+Layout.instruction
+Layout.question
+Layout.button
+```
+
+The number of questions is controlled by:
+
+```matlab
+P.Questionnaire.nQuestions
+```
+
+The number of rating options is controlled by:
+
+```matlab
+P.Questionnaire.nScalePoints
+```
+
+---
+
+# 26. `convertQuestionnaireLayout.m`
+
+Converts normalized questionnaire geometry to pixel coordinates.
+
+The resulting rectangles are used for:
+
+* question-image placement
+* rating-button placement
+* mouse hit testing
+
+---
+
+# 27. `drawQuestionnaire.m`
+
+Draws the current questionnaire screen.
+
+The current implementation displays:
+
+* `Q0` instruction
+* all three question images
+* seven response buttons for each question
+* green borders around selected responses
+
+Question images are scaled while preserving their aspect ratio.
+
+---
+
+# 28. `collectQuestionnaireResponse.m`
+
+Collects questionnaire responses.
+
+The current implementation permits the participant to answer the three questions shown on the same screen.
+
+For each question it records:
+
+```text
+response
+RT
+```
+
+A questionnaire timeout is controlled by:
+
+```matlab
+P.Questionnaire.duration
+```
+
+---
+
+# 29. `runQuestionnaire.m`
+
+Controls questionnaire presentation.
+
+Responsibilities:
+
+1. initialize unanswered responses
+2. draw the questionnaire
+3. flip the display
+4. record questionnaire onset
+5. collect responses
+6. return response and RT vectors
+
+---
+
+# 30. Current Questionnaire Limitation
+
+The current questionnaire presents all three questions simultaneously.
+
+This implementation is functional, but it is scheduled for redesign.
+
+The planned architecture is one question per screen.
+
+Planned sequence:
+
+```text
+Questionnaire trial 1
+    Q0
+    Q1
+    rating buttons
+
+Questionnaire trial 2
+    Q0
+    Q2
+    rating buttons
+
+Questionnaire trial 3
+    Q0
+    Q3
+    rating buttons
+```
+
+The planned questionnaire interaction will reuse:
+
+```matlab
+drawResponseHighlight
+```
+
+for:
+
+* yellow hover feedback
+* green confirmed-response feedback
+
+---
+
+# 31. Result Saving
+
+## `saveResults.m`
+
+Saves the complete participant result structure.
+
+Results are stored as:
+
+```text
+data/<SubjectID>.mat
+```
+
+The saved structure contains both:
+
+* behavioral task results
+* participant metadata
+
+---
+
+# 32. Utilities
+
+## `readimg.m`
+
+Loads an image file and creates a Psychtoolbox texture.
+
+Returns:
+
+```text
+textureID
+imageWidth
+imageHeight
+```
+
+---
+
+## `normalizeScaleValue.m`
+
+Converts a preference-scale value to the normalized interval:
+
+```text
+[0, 1]
+```
+
+Used by the preference-rating display.
+
+---
+
+## `showBlankScreen.m`
+
+Displays the experiment background for a specified duration.
+
+---
+
+## `showMessageScreen.m`
+
+Displays centered experiment messages and waits for participant input.
+
+---
+
+# 33. Main Module Map
+
+## General
+
+```text
+collectSubjectInfo.m
+saveResults.m
+readimg.m
+showBlankScreen.m
+showMessageScreen.m
+```
+
+## Preference Rating
+
+```text
+drawRatingScreen.m
+collectSliderResponse.m
+runRatingPractice.m
+runRatingTrial.m
+runRatingRound.m
+computeAverageRating.m
+taskPreferenceRating.m
+```
+
+## Choice-Set Generation
+
+```text
+makeChoiceSets.m
+selectClosestToRange.m
+getSetRating.m
+```
+
+## Choice Task
+
+```text
+makeChoiceLayout.m
+convertChoiceLayout.m
+randomizeChoicePositions.m
+drawChoiceSet.m
+drawResponseHighlight.m
+collectChoiceResponse.m
+runChoiceTrial.m
+runChoiceBlock.m
+taskChoice.m
+```
+
+## Questionnaire
+
+```text
+makeQuestionnaireLayout.m
+convertQuestionnaireLayout.m
+drawQuestionnaire.m
+collectQuestionnaireResponse.m
+runQuestionnaire.m
+```
+
+---
+
+# 34. Current Experimental Status
+
+The experiment currently supports:
+
+* participant-information collection
+* preference-rating practice
+* repeated preference-rating rounds
+* average preference calculation
+* participant-specific choice-set generation
+* three choice-set sizes
+* five choice conditions
+* fixed choice-trial timing
+* mouse-based choice responses
+* response timeouts
+* response-phase visual cue
+* yellow valid-option hover feedback
+* green selection confirmation
+* EEG-oriented suppression of unnecessary highlight flashes
+* questionnaire presentation after successful choices
+* questionnaire response and RT storage
+* result saving
+
+---
+
+# 35. Next Development Target
+
+The next planned change is the questionnaire redesign.
+
+The goal is to replace the current simultaneous three-question display with a trial-based sequence.
+
+Each questionnaire trial will contain:
+
+```text
+Q0 instruction
+      ↓
+one question
+      ↓
+rating buttons
+```
+
+The choice-task response-highlight architecture will be reused where possible.
+
+This keeps interaction behavior consistent across the experiment.
