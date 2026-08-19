@@ -1,46 +1,64 @@
 function Layout = makeQuestionnaireLayout(P)
 
-% makeQuestionnaireLayout  Generate the normalized questionnaire layout.
+% makeQuestionnaireLayout
 %
-%   Layout = makeQuestionnaireLayout(P)
+% Generate the normalized spatial layout for one questionnaire trial.
 %
-%   Defines the spatial geometry of the questionnaire screen.
+% Each questionnaire trial contains:
 %
-%   The questionnaire contains:
-%       - One general instruction image at the top
-%       - Three vertically arranged question images
-%       - A parametrically sized Likert response scale beneath each
-%         question
+%       Q0 instruction image
 %
-%   All coordinates are normalized:
+%       current question image
+%
+%       rating buttons: 1 ... nScalePoints
+%
+% The same layout is reused for every questionnaire question.
+%
+% All coordinates are normalized relative to screen center:
+%
 %       x = -0.5 ... +0.5
 %       y = -0.5 ... +0.5
 %
-%   The question-image height is derived from the known image aspect
-%   ratio, so the image dimensions themselves never enter the spatial
-%   coordinate system.
+% The number of response buttons is determined entirely by:
 %
-%   The function only defines spatial geometry. It does not load images,
-%   draw anything, or collect responses.
+%       P.Questionnaire.nScalePoints
+%
+% Therefore the layout supports 7-point, 9-point, or other scale
+% lengths without changing this function.
 
 
 L = P.Questionnaire.Layout;
 
+nScalePoints = P.Questionnaire.nScalePoints;
+
 
 %% ==============================================================
-% Image Aspect Ratio
+% Validate Scale
+% ==============================================================
+
+if nScalePoints < 2
+
+    error( ...
+        'P.Questionnaire.nScalePoints must be at least 2.');
+
+end
+
+
+%% ==============================================================
+% Question Image Aspect Ratio
 % ==============================================================
 
 imageAspectRatio = ...
     P.Questionnaire.imageWidth / ...
     P.Questionnaire.imageHeight;
 
+
 questionHeight = ...
     L.questionWidth / imageAspectRatio;
 
 
 %% ==============================================================
-% General Instruction
+% General Instruction Region
 % ==============================================================
 
 Layout.instruction = [ ...
@@ -51,62 +69,92 @@ Layout.instruction = [ ...
 
 
 %% ==============================================================
-% Question Rows
+% Current Question Region
 % ==============================================================
 
-Layout.question = zeros( ...
-    P.Questionnaire.nQuestions, 4);
+Layout.question = [ ...
+    -L.questionWidth / 2, ...
+     L.questionY - questionHeight / 2, ...
+     L.questionWidth / 2, ...
+     L.questionY + questionHeight / 2];
+
+
+%% ==============================================================
+% Rating Buttons
+% ==============================================================
+
+% One rectangle per possible response:
+%
+%       Layout.button(1, :) = response 1
+%       Layout.button(2, :) = response 2
+%       ...
+%       Layout.button(N, :) = response N
 
 Layout.button = zeros( ...
-    P.Questionnaire.nQuestions, ...
-    P.Questionnaire.nScalePoints, 4);
+    nScalePoints, ...
+    4);
 
 
-for question = 1:P.Questionnaire.nQuestions
+%% --------------------------------------------------------------
+% Check Available Horizontal Space
+% ---------------------------------------------------------------
 
-    %% Question image
+% Button centers are evenly distributed across scaleWidth.
+%
+% Ensure that the requested number of buttons can physically fit
+% without overlap.
 
-    questionY = ...
-        L.firstQuestionY - ...
-        (question - 1) * L.rowSpacing;
-
-    Layout.question(question, :) = [ ...
-        -L.questionWidth / 2, ...
-        questionY - questionHeight / 2, ...
-         L.questionWidth / 2, ...
-        questionY + questionHeight / 2];
+minimumRequiredWidth = ...
+    nScalePoints * L.buttonWidth;
 
 
-    %% Response buttons
+if minimumRequiredWidth > L.scaleWidth
 
-    buttonY = ...
-        questionY - questionHeight / 2 - ...
-        L.questionResponseGap - ...
-        L.buttonHeight / 2;
-
-    totalWidth = ...
-        P.Questionnaire.nScalePoints * L.buttonWidth + ...
-        (P.Questionnaire.nScalePoints - 1) * L.buttonGap;
-
-    firstButtonX = ...
-        -totalWidth / 2 + L.buttonWidth / 2;
-
-
-    for scalePoint = 1:P.Questionnaire.nScalePoints
-
-        buttonX = ...
-            firstButtonX + ...
-            (scalePoint - 1) * ...
-            (L.buttonWidth + L.buttonGap);
-
-        Layout.button(question, scalePoint, :) = [ ...
-            buttonX - L.buttonWidth / 2, ...
-            buttonY - L.buttonHeight / 2, ...
-            buttonX + L.buttonWidth / 2, ...
-            buttonY + L.buttonHeight / 2];
-
-    end
+    error( ...
+        ['Questionnaire scale is too narrow for %d buttons. ' ...
+         'Increase P.Questionnaire.Layout.scaleWidth or reduce ' ...
+         'buttonWidth.'], ...
+        nScalePoints);
 
 end
+
+
+%% --------------------------------------------------------------
+% Button Centers
+% ---------------------------------------------------------------
+
+firstButtonX = ...
+    -L.scaleWidth / 2 + ...
+    L.buttonWidth / 2;
+
+
+lastButtonX = ...
+     L.scaleWidth / 2 - ...
+     L.buttonWidth / 2;
+
+
+buttonCentersX = linspace( ...
+    firstButtonX, ...
+    lastButtonX, ...
+    nScalePoints);
+
+
+%% --------------------------------------------------------------
+% Construct Button Rectangles
+% ---------------------------------------------------------------
+
+for scalePoint = 1:nScalePoints
+
+    buttonX = buttonCentersX(scalePoint);
+
+
+    Layout.button(scalePoint, :) = [ ...
+        buttonX - L.buttonWidth / 2, ...
+        L.buttonY - L.buttonHeight / 2, ...
+        buttonX + L.buttonWidth / 2, ...
+        L.buttonY + L.buttonHeight / 2];
+
+end
+
 
 end

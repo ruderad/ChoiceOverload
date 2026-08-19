@@ -1,68 +1,256 @@
 function [response, RT] = collectQuestionnaireResponse( ...
-    window, Layout, P, T, questionFiles, startTime)
+    window, baseWindow, Layout, ...
+    questionOnset, questionDuration, Highlight)
 
-nQuestions = P.Questionnaire.nQuestions;
-nScalePoints = P.Questionnaire.nScalePoints;
+% collectQuestionnaireResponse
+%
+% Collect one response for one questionnaire question.
+%
+% Interaction:
+%
+%       hover valid button
+%           -> yellow border
+%
+%       leave valid button
+%           -> no highlight
+%
+%       click valid button
+%           -> green confirmation border
+%
+% The function is independent of the number of scale points.
+% Valid buttons are determined from:
+%
+%       size(Layout.button, 1)
+%
+% Therefore 7-point, 9-point, or other scale lengths require
+% no changes to this function.
+%
+% Inputs:
+%
+%       window
+%           Psychtoolbox onscreen window.
+%
+%       baseWindow
+%           Offscreen cached copy of the clean questionnaire screen.
+%
+%       Layout
+%           Pixel-based questionnaire layout.
+%
+%       questionOnset
+%           Flip timestamp marking question onset.
+%
+%       questionDuration
+%           Maximum response duration.
+%
+%       Highlight
+%           Structure containing:
+%
+%               hoverColor
+%               selectedColor
+%               borderWidth
+%               feedbackDuration
+%
+% Outputs:
+%
+%       response
+%           Selected scale point.
+%           NaN if no response occurs before timeout.
+%
+%       RT
+%           Reaction time from question onset.
+%           NaN on timeout.
 
-response = nan(1, nQuestions);
-RT = nan(1, nQuestions);
 
-answered = false(1, nQuestions);
+%% ==============================================================
+% Initialize
+% ==============================================================
+
+response = NaN;
+RT = NaN;
+
+nScalePoints = size(Layout.button, 1);
+
+currentHighlight = [];
 
 
-%% Initial questionnaire display
+%% ==============================================================
+% Mouse-Arming State
+% ==============================================================
 
-drawQuestionnaire( ...
-    P, T, Layout, questionFiles, response);
+% A button already held when the question appears must not
+% automatically become a response.
 
-Screen('Flip', window);
+[~, ~, buttons] = GetMouse(window);
+
+mouseArmed = ~any(buttons);
 
 
-%% Collect responses
+%% ==============================================================
+% Response Loop
+% ==============================================================
 
-while ~all(answered)
+while isnan(response)
+
+
+    %% ----------------------------------------------------------
+    % Timeout
+    % -----------------------------------------------------------
+
+    if GetSecs - questionOnset >= questionDuration
+        break;
+    end
+
+
+    %% ----------------------------------------------------------
+    % Read Mouse
+    % -----------------------------------------------------------
 
     [x, y, buttons] = GetMouse(window);
 
-    if any(buttons)
 
-        for question = 1:nQuestions
+    %% ----------------------------------------------------------
+    % Arm Mouse
+    % -----------------------------------------------------------
 
-            for scalePoint = 1:nScalePoints
+    if ~mouseArmed && ~any(buttons)
+        mouseArmed = true;
+    end
 
-                rect = Layout.button(question, scalePoint, :);
-                rect = rect(:)';
 
-                if IsInRect(x, y, rect)
+    %% ----------------------------------------------------------
+    % Detect Hovered Scale Point
+    % -----------------------------------------------------------
 
-                    response(question) = scalePoint;
-                    RT(question) = GetSecs - startTime;
+    hoverScalePoint = [];
 
-                    answered(question) = true;
 
-                    % Redraw with selected option highlighted
-                    drawQuestionnaire( ...
-                        P, T, Layout, questionFiles, response);
+    for scalePoint = 1:nScalePoints
 
-                    Screen('Flip', window);
+        if IsInRect( ...
+                x, ...
+                y, ...
+                Layout.button(scalePoint, :))
 
-                    break;
-
-                end
-
-            end
+            hoverScalePoint = scalePoint;
+            break;
 
         end
 
     end
 
 
-    %% Timeout
+    %% ----------------------------------------------------------
+    % Update Hover Display
+    % -----------------------------------------------------------
 
-    if GetSecs - startTime >= P.Questionnaire.duration
-        break;
+    if ~isequal( ...
+            hoverScalePoint, ...
+            currentHighlight)
+
+
+        % Restore clean questionnaire screen.
+
+        Screen( ...
+            'CopyWindow', ...
+            baseWindow, ...
+            window);
+
+
+        % Draw yellow border only when cursor is over
+        % a valid response button.
+
+        if ~isempty(hoverScalePoint)
+
+            drawResponseHighlight( ...
+                window, ...
+                Layout.button(hoverScalePoint, :), ...
+                Highlight.hoverColor, ...
+                Highlight.borderWidth);
+
+        end
+
+
+        Screen('Flip', window);
+
+
+        currentHighlight = hoverScalePoint;
+
     end
 
+
+    %% ----------------------------------------------------------
+    % Accept Valid Response
+    % -----------------------------------------------------------
+
+    if mouseArmed && ...
+            any(buttons) && ...
+            ~isempty(hoverScalePoint)
+
+
+        response = hoverScalePoint;
+
+        RT = GetSecs - questionOnset;
+
+
+        %% ------------------------------------------------------
+        % Green Selection Feedback
+        % -------------------------------------------------------
+
+        Screen( ...
+            'CopyWindow', ...
+            baseWindow, ...
+            window);
+
+
+        drawResponseHighlight( ...
+            window, ...
+            Layout.button(response, :), ...
+            Highlight.selectedColor, ...
+            Highlight.borderWidth);
+
+
+        feedbackOnset = Screen('Flip', window);
+
+
+        %% ------------------------------------------------------
+        % Wait for Mouse Release
+        % -------------------------------------------------------
+
+        [~, ~, buttons] = GetMouse(window);
+
+
+        while any(buttons)
+
+            WaitSecs(0.001);
+
+            [~, ~, buttons] = GetMouse(window);
+
+        end
+
+
+        %% ------------------------------------------------------
+        % Maintain Green Feedback
+        % -------------------------------------------------------
+
+        remainingFeedback = ...
+            Highlight.feedbackDuration - ...
+            (GetSecs - feedbackOnset);
+
+
+        if remainingFeedback > 0
+            WaitSecs(remainingFeedback);
+        end
+
+
+        break;
+
+    end
+
+
+    WaitSecs(0.001);
+
+
 end
+
 
 end

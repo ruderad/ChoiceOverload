@@ -166,42 +166,77 @@ P.Choice.choiceDuration         = 3.0;
 %  ==============================================================
 
 P.Questionnaire.nQuestions   = 3;
-P.Questionnaire.nScalePoints = 7;
-P.Questionnaire.duration     = 6.0;
 
-% Question image dimensions
+% Can later be changed to 9 without changing questionnaire modules.
+P.Questionnaire.nScalePoints = 7;
+
+% Maximum response time PER QUESTION.
+P.Questionnaire.duration = 6.0;
+
+
+%% ==============================================================
+% Questionnaire Images
+% ==============================================================
+
+% Known question-image dimensions used for layout aspect ratio.
 P.Questionnaire.imageWidth  = 1988;
 P.Questionnaire.imageHeight = 204;
 
 
-%% Questionnaire Layout
+%% ==============================================================
+% Questionnaire Layout
+% ==============================================================
 
+% Q0 general instruction
 P.Questionnaire.Layout.instructionWidth  = 0.70;
-P.Questionnaire.Layout.instructionHeight = 0.06;
-P.Questionnaire.Layout.instructionY      = 0.40;
+P.Questionnaire.Layout.instructionHeight = 0.10;
+P.Questionnaire.Layout.instructionY      = -0.28;
 
+% Current question
 P.Questionnaire.Layout.questionWidth = 0.65;
+P.Questionnaire.Layout.questionY     = 0.00;
+
+% Rating scale
+P.Questionnaire.Layout.scaleWidth = 0.70;
+P.Questionnaire.Layout.buttonY    = 0.22;
 
 P.Questionnaire.Layout.buttonWidth  = 0.055;
-P.Questionnaire.Layout.buttonHeight = 0.045;
-
-P.Questionnaire.Layout.buttonGap = 0.012;
-
-P.Questionnaire.Layout.firstQuestionY = 0.22;
-P.Questionnaire.Layout.rowSpacing = 0.27;
-
-P.Questionnaire.Layout.questionResponseGap = 0.025;
+P.Questionnaire.Layout.buttonHeight = 0.055;
 
 P.Questionnaire.Layout.buttonBorderWidth = 2;
 
-P.Questionnaire.Layout.selectedColor = [0 1 0];
-P.Questionnaire.Layout.selectedBorderWidth = 4;
+
+%% ==============================================================
+% Questionnaire Response Highlighting
+% ==============================================================
+
+P.Questionnaire.Highlight.hoverColor    = [255 255 0];
+P.Questionnaire.Highlight.selectedColor = [0 255 0];
+
+P.Questionnaire.Highlight.borderWidth = 5;
+
+P.Questionnaire.Highlight.feedbackDuration = 0.25;
 
 
-%% Questionnaire Files
-P.Questionnaire.questionFiles = { ...
-    fullfile(root, 'Instructions', 'Q0.png'), ...
-    fullfile(root, 'Instructions', 'Q1.png'), ...
-    fullfile(root, 'Instructions', 'Q2.png'), ...
-    fullfile(root, 'Instructions', 'Q3.png')};
+%% ==============================================================
+% Questionnaire Files
+% ==============================================================
+
+% Generate Q0 ... Qn automatically.
+%
+% No questionnaire-count hardcoding here.
+
+P.Questionnaire.questionFiles = ...
+    cell(1, P.Questionnaire.nQuestions + 1);
+
+
+for q = 0:P.Questionnaire.nQuestions
+
+    P.Questionnaire.questionFiles{q + 1} = ...
+        fullfile( ...
+            P.Experiment.root, ...
+            'Instructions', ...
+            sprintf('Q%d.png', q));
+
+end
 end

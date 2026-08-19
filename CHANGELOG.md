@@ -263,3 +263,25 @@ The Choice Task is now considered functionally complete.
 ### Next
 
 Redesign the questionnaire from one simultaneous three-question screen into three sequential question screens with the same yellow-hover / green-selection interaction pattern.
+
+## v0.2.4 — Sequential Questionnaire Redesign
+
+### Changed
+- Reworked the questionnaire from one multi-question screen into sequential single-question screens.
+- Each questionnaire screen now contains:
+  - `Q0` general instruction
+  - one current question image
+  - a configurable rating scale
+- Questionnaire responses and RTs are now collected separately for each question.
+- Added yellow hover and green selection feedback using `drawResponseHighlight.m`.
+- Added a cached clean questionnaire display for efficient hover updates.
+- Reset the mouse to screen center before each questionnaire question.
+- Removed obsolete multi-row questionnaire layout parameters.
+
+### Improved
+- Questionnaire layout is now independent of scale length.
+- `P.Questionnaire.nScalePoints` can be changed from 7 to 9 without modifying questionnaire modules.
+- Questionnaire image paths are generated dynamically from `P.Questionnaire.nQuestions`.
+
+### Status
+The sequential questionnaire architecture is implemented and ready for testing.
