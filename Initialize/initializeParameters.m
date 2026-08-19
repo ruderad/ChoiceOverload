@@ -71,11 +71,11 @@ P.Message.fontSize = 28;
 P.Preference.nRounds = 2;
 
 P.Preference.nPracticeTrials = 5;
-P.Preference.nTrialsPerRound = 30;
+P.Preference.nTrialsPerRound = 120;
 
 P.Preference.min   = 1;
-P.Preference.max   = 7;
-P.Preference.step  = 1;
+P.Preference.max   = 9;
+P.Preference.step  = 0.25;
 
 % Sitance between labeled (major) ticks
 P.Preference.majorTickInterval = 1;
@@ -131,7 +131,6 @@ P.Preference.Layout.progressColor = [0 180 0];
 %  ==============================================================
 
 P.Choice.setSizes = [6 12 24];
-P.Choice.blockOrder = [1 2 3];
 
 %% Choice Condition Trial Counts
 
