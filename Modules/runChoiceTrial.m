@@ -65,23 +65,6 @@ positions = randomizeChoicePositions( ...
 
 trial.positions = positions;
 
-%% ==============================================================
-% Reset Mouse Position
-% ==============================================================
-
-% Recenter the mouse at the fixation cell at the beginning
-% of every choice trial.
-
-mouseStartX = round( ...
-    mean(ChoiceLayout.fixation([1 3])));
-
-mouseStartY = round( ...
-    mean(ChoiceLayout.fixation([2 4])));
-
-SetMouse( ...
-    mouseStartX, ...
-    mouseStartY, ...
-    T.window);
 
 %% ==============================================================
 % Fixation
@@ -285,6 +268,24 @@ Screen( ...
     T.window, ...
     responseBuffer);
 
+
+%% ==============================================================
+% Reset Mouse Position
+% ==============================================================
+
+% Recenter the mouse at the fixation cell at the beginning
+% of every choice trial.
+
+mouseStartX = round( ...
+    mean(ChoiceLayout.fixation([1 3])));
+
+mouseStartY = round( ...
+    mean(ChoiceLayout.fixation([2 4])));
+
+SetMouse( ...
+    mouseStartX, ...
+    mouseStartY, ...
+    T.window);
 
 %% ==============================================================
 % Response Phase Onset

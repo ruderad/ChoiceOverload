@@ -182,153 +182,68 @@ Missed choice trials skip the questionnaire.
 
 ---
 
-## v0.2.3 — Choice-Task Stabilization and Response Feedback
+## v0.2.3 — Choice Task Stabilization and Response Feedback
 
-### Fixed — Choice/Questionnaire Integration
+### Fixed
 
-Corrected interface mismatches introduced when the questionnaire was integrated into the choice task.
+- Repaired choice/questionnaire integration across:
 
-The final call hierarchy is:
+    - `taskChoice.m`
 
-```text
-taskChoice
-    ↓
-runChoiceBlock
-    ↓
-runChoiceTrial
-    ├── collectChoiceResponse
-    └── runQuestionnaire
-```
+    - `runChoiceBlock.m`
 
-The following values are now passed consistently through the hierarchy:
+    - `runChoiceTrial.m`
 
-* `ChoiceSet`
-* `condition`
-* `ChoiceLayout`
-* `QuestionnaireLayout`
-* `questionFiles`
+    - `collectChoiceResponse.m`
 
-### Fixed — Trial Structure
+- Fixed trial-structure compatibility by adding:
 
-Updated choice-trial preallocation to include questionnaire output:
+    - `trial.question.response`
 
-```text
-trial.question.response
-trial.question.RT
-```
+    - `trial.question.RT`
 
-This keeps the structures returned by `runChoiceTrial` compatible with the structures stored by `runChoiceBlock`.
+- Standardized use of `ChoiceLayout` and `QuestionnaireLayout`.
 
-### Fixed — Choice Layout References
+- Restricted valid choices to occupied stimulus cells in positions.stimulus.
 
-Removed stale references to the generic variable `Layout` inside the updated choice-trial code.
+- Fixed questionnaire rating-number rendering in `drawQuestionnaire.m`.
 
-Choice-task geometry now consistently uses:
+- Prevented mouse-button carryover from registering accidental responses.
 
-```matlab
-ChoiceLayout
-```
+- Renamed questionnaire folder:
 
-Questionnaire geometry uses:
+    Instrctions/ → Instructions/
 
-```matlab
-QuestionnaireLayout
-```
+- Centralized questionnaire image paths in `P.Questionnaire.questionFiles`.
 
-### Fixed — Valid Choice Locations
+### Added
 
-Choice responses are now accepted only when the participant clicks an occupied stimulus cell.
+- `drawResponseHighlight.m`
 
-Masked or empty cells are ignored.
+- Yellow hover feedback during the choice response phase.
 
-Valid response locations are defined by:
+- Green confirmation feedback after a valid click.
 
-```matlab
-positions.stimulus
-```
+- Per-trial cursor reset to the center of fixation immediately before response onset.
 
-This prevents an empty grid location from being stored as a behavioral choice.
+- Cached response display for efficient hover updates.
 
-### Fixed — Questionnaire Text Rendering
+### Final Choice Response Behavior
 
-Corrected the `DrawFormattedText` argument sequence in `drawQuestionnaire.m`.
-
-The questionnaire rating numbers now render correctly inside their response buttons.
-
-### Fixed — Mouse Carryover
-
-A mouse click used to select a choice cannot carry directly into the questionnaire.
-
-The response collector waits for mouse-button release after a valid choice.
-
-### Added — Response Highlight Helper
-
-Added:
-
-```text
-drawResponseHighlight.m
-```
-
-This small helper draws a configurable response border around any supplied rectangle.
-
-The helper is task-independent and can later be reused by the questionnaire.
-
-### Added — Choice Response Highlighting
-
-The choice response phase now has explicit visual feedback.
-
-#### Response onset
-
-A yellow border is drawn around the central fixation cell.
-
-This yellow border is a visual cue that the response phase has started.
-
-#### Valid stimulus hover
-
-When the mouse moves over an occupied stimulus cell:
-
-```text
-yellow fixation
-      ↓
-yellow stimulus border
-```
-
-#### Mouse outside valid stimuli
-
-When the mouse leaves a valid stimulus cell:
-
-```text
-yellow stimulus border
-      ↓
-no highlight
-```
-
-The yellow border does **not** return to fixation.
-
-This behavior reduces unnecessary visual transients during EEG recording.
-
-#### Confirmed response
-
-When the participant clicks a valid stimulus:
-
-```text
-yellow hover
-     ↓
-green selection border
-```
-
-The green border provides brief visual confirmation of the selected option.
-
-### EEG-Specific Highlight Rules
-
-Response highlighting follows these rules:
-
-```text
 EXPOSURE
     no yellow highlight
 
+RESPONSE PREPARATION
+    cursor reset to fixation center
+
 RESPONSE ONSET
     yellow fixation border
+
+CURSOR REMAINS IN FIXATION
+    yellow fixation remains
+
+CURSOR LEAVES FIXATION
+    no highlight
 
 HOVER VALID STIMULUS
     yellow stimulus border
@@ -336,74 +251,15 @@ HOVER VALID STIMULUS
 LEAVE VALID STIMULUS
     no highlight
 
-HOVER ANOTHER VALID STIMULUS
-    yellow stimulus border
-
 CLICK VALID STIMULUS
     green stimulus border
-```
 
-The fixation highlight appears only at response onset.
+The fixation highlight appears only at the beginning of the response phase and does not return after the cursor leaves it. This reduces unnecessary visual transients during EEG recording.
 
-It does not flash again when the mouse moves between valid and invalid screen regions.
+### Status
 
-### Added — Cached Response Display
+The Choice Task is now considered functionally complete.
 
-The clean response screen is stored in an offscreen Psychtoolbox window.
+### Next
 
-Hover updates restore this cached display and then draw only the required highlight.
-
-This avoids repeatedly loading and rebuilding stimulus textures during mouse movement.
-
-### Fixed — Questionnaire File Paths
-
-Renamed the misspelled questionnaire image directory:
-
-```text
-Instrctions/
-
-to:
-
-Instructions/
-```
-
-
-
-
-### Current Status
-
-The experiment now executes the following complete sequence:
-
-```text
-Participant information
-        ↓
-Preference-rating practice
-        ↓
-Preference-rating rounds
-        ↓
-Personalized choice-set generation
-        ↓
-Choice task
-        ↓
-Questionnaire after each successful choice
-        ↓
-Result saving
-```
-
-The preference task, choice task, and questionnaire are integrated and operational.
-
-### Next Planned Change
-
-Redesign the questionnaire from one three-question screen into three sequential question trials.
-
-Each questionnaire trial will contain:
-
-```text
-Q0 instruction
-      ↓
-Current question
-      ↓
-Rating buttons
-```
-
-The questionnaire will reuse the yellow-hover and green-selection response-feedback system.
+Redesign the questionnaire from one simultaneous three-question screen into three sequential question screens with the same yellow-hover / green-selection interaction pattern.
