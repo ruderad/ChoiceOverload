@@ -18,6 +18,11 @@ function R = taskChoice(R, P, T, ChoiceSets)
 %       R          - Updated results structure.
 
 
+showInstructionImage( ...
+    P.Instructions.choiceInstruction, ...
+    P, ...
+    T);
+
 ShowCursor('Arrow');
 
 
@@ -193,6 +198,16 @@ end
 %% ==============================================================
 % Finish
 % ==============================================================
+
+%% ==============================================================
+% Experiment Finished
+% ==============================================================
+
+showInstructionImage( ...
+    P.Instructions.experimentFinished, ...
+    P, ...
+    T);
+
 
 HideCursor;
 

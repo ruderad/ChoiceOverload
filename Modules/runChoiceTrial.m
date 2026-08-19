@@ -69,6 +69,8 @@ trial.positions = positions;
 %% ==============================================================
 % Fixation
 % ==============================================================
+HideCursor; 
+
 
 Screen( ...
     'FillRect', ...
@@ -295,6 +297,7 @@ SetMouse( ...
 % backbuffer from drawChoiceSet.
 %
 % Add the yellow fixation cue before the first response-phase flip.
+ShowCursor('Arrow');
 
 drawResponseHighlight( ...
     T.window, ...

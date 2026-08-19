@@ -65,6 +65,31 @@ P.Timing.blankITI = 0.050;    % seconds
 P.Message.fontSize = 28;
 
 %% ==============================================================
+%  Instruction Screens
+%  ==============================================================
+
+instructionFolder = ...
+    fullfile(P.Experiment.root, 'Instructions');
+
+P.Instructions.welcome = ...
+    fullfile(instructionFolder, 'welcome.png');
+
+P.Instructions.ratingPracticeFinished = ...
+    fullfile(instructionFolder, 'ratingPracticeFinished.png');
+
+P.Instructions.ratingRoundFinished = ...
+    fullfile(instructionFolder, 'ratingRoundFinished.png');
+
+P.Instructions.ratingTaskFinished = ...
+    fullfile(instructionFolder, 'ratingTaskFinished.png');
+
+P.Instructions.choiceInstruction = ...
+    fullfile(instructionFolder, 'choiceInstruction.png');
+
+P.Instructions.experimentFinished = ...
+    fullfile(instructionFolder, 'experimentFinished.png');
+
+%% ==============================================================
 %  Preference Rating Task
 %  ==============================================================
 
@@ -193,8 +218,8 @@ P.Questionnaire.duration = 6.0;
 % ==============================================================
 
 % Known question-image dimensions used for layout aspect ratio.
-P.Questionnaire.imageWidth  = 1988;
-P.Questionnaire.imageHeight = 204;
+P.Questionnaire.imageWidth  = 1872;
+P.Questionnaire.imageHeight = 350;
 
 
 %% ==============================================================
