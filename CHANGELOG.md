@@ -285,3 +285,9 @@ Redesign the questionnaire from one simultaneous three-question screen into thre
 
 ### Status
 The sequential questionnaire architecture is implemented and ready for testing.
+
+## v0.2.5 - Final Psychophysics Experiment
+
+### Changed
+- removed magic numbers from `makeChoiceSets`. The ranges and the number of trial per condition are fully parametric.
+

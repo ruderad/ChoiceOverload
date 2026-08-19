@@ -5,7 +5,7 @@ function P = initializeParameters(root)
 %  ==============================================================
 
 P.Experiment.name    = 'Choice Overload';
-P.Experiment.version = '0.2.3';
+P.Experiment.version = '0.2.4';
 P.Experiment.date    = datestr(now,'yyyy-mm-dd');
 
 % Root directory of the experiment
@@ -76,9 +76,15 @@ P.Preference.nTrialsPerRound = 30;
 P.Preference.min   = 1;
 P.Preference.max   = 7;
 P.Preference.step  = 1;
+
 % Sitance between labeled (major) ticks
 P.Preference.majorTickInterval = 1;
 P.Preference.start = 5;
+
+P.Choice.RatingRanges = makeChoiceRatingRanges( ...
+    P.Preference.min, ...
+    P.Preference.max, ...
+    P.Preference.step);
 
 %% ==============================================================
 %  Preference Rating Layout
@@ -119,15 +125,24 @@ P.Preference.Layout.scaleColor = [255 255 255];
 P.Preference.Layout.tickColor = [255 255 255];
 P.Preference.Layout.sliderColor = [0 180 0];
 P.Preference.Layout.progressColor = [0 180 0];
+
 %% ==============================================================
 %  Choice Task
 %  ==============================================================
 
 P.Choice.setSizes = [6 12 24];
-
 P.Choice.blockOrder = [1 2 3];
 
-% Choice Task Layout
+%% Choice Condition Trial Counts
+
+P.Choice.TrialCounts.UL = 5;
+P.Choice.TrialCounts.UM = 5;
+P.Choice.TrialCounts.UH = 5;
+
+P.Choice.TrialCounts.CF = 15;
+P.Choice.TrialCounts.RS = 15;
+
+%% Choice Task Layout
 P.Choice.Layout.nColumns = 6;
 P.Choice.Layout.nRows = 5;
 
