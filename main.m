@@ -34,17 +34,41 @@ end
 % Run Experiment
 % ==============================================================
 
+T = [];
+
+
 try
+
+    %% Psychtoolbox
 
     T = initializeTask(P);
 
-    % Task 1: Preference Rating
-    R = taskPreferenceRating(R, P, T);
 
-    % Prepare choice sets
+    %% Acquisition
+
+    T = initializeAcquisition( ...
+        P, ...
+        T, ...
+        R.Subject);
+
+
+    %% Task 1: Preference Rating
+
+    R = taskPreferenceRating( ...
+        R, ...
+        P, ...
+        T);
+
+
+    %% Prepare Choice Sets
+
     rating = R.Preference.average;
 
-    ChoiceSets = cell(1, numel(P.Choice.setSizes));
+
+    ChoiceSets = cell( ...
+        1, ...
+        numel(P.Choice.setSizes));
+
 
     for i = 1:numel(P.Choice.setSizes)
 
@@ -56,17 +80,45 @@ try
 
     end
 
-    % Task 2: Choice
-    R = taskChoice(R, P, T, ChoiceSets);
+
+    %% Task 2: Choice
+
+    R = taskChoice( ...
+        R, ...
+        P, ...
+        T, ...
+        ChoiceSets);
+
+
+    %% Cleanup Acquisition
+
+    cleanupAcquisition(P, T);
+
+
+    %% Cleanup Psychtoolbox
 
     cleanupTask();
 
-    % Save results
-    saveResults(R, root);
+
+    %% Save Results
+
+    saveResults( ...
+        R, ...
+        root);
+
 
 catch ME
 
+    %% Emergency Cleanup
+
+    cleanupAcquisition( ...
+        P, ...
+        T);
+
+
     cleanupTask();
+
+
     rethrow(ME);
 
 end

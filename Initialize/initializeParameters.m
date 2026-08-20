@@ -18,6 +18,37 @@ P.Experiment.root = root;
 P.Debug.enabled = true;
 
 %% ==============================================================
+%  Acquisition
+%  ==============================================================
+
+% Debug mode is the master hardware bypass.
+%
+% When P.Debug.enabled = true:
+%
+%   EEG        -> completely bypassed
+%   EyeTracker -> completely bypassed
+
+
+%% EEG
+
+% Is the EEG hardware part of this experiment setup?
+P.Acquisition.EEG.enabled = true;
+
+% Which tasks should use EEG?
+P.Acquisition.EEG.PreferenceRating = false;
+P.Acquisition.EEG.Choice           = true;
+
+
+%% Eye Tracker
+
+% Is the eye tracker part of this experiment setup?
+P.Acquisition.EyeTracker.enabled = true;
+
+% Which tasks should use eye tracking?
+P.Acquisition.EyeTracker.PreferenceRating = true;
+P.Acquisition.EyeTracker.Choice           = true;
+
+%% ==============================================================
 %  Screen
 %  ==============================================================
 
@@ -278,4 +309,183 @@ for q = 0:P.Questionnaire.nQuestions
             sprintf('Q%d.png', q));
 
 end
+
+%% ==============================================================
+%  Event Markers
+%  ==============================================================
+
+% Event-codebook version.
+%
+% Increment this if the meaning or numbering of event codes
+% changes in a future experiment version.
+
+P.Events.version = '1.0';
+
+
+%% ==============================================================
+% Experiment
+% ==============================================================
+
+P.Events.Experiment.start = 1;
+P.Events.Experiment.end   = 2;
+
+
+%% ==============================================================
+% Preference Rating
+% ==============================================================
+
+% Practice trials are kept separate from experimental trials.
+
+P.Events.Rating.practiceStimulus = 10;
+P.Events.Rating.practiceResponse = 11;
+
+% Main rating rounds.
+
+P.Events.Rating.roundStart = 12;
+P.Events.Rating.roundEnd   = 13;
+
+P.Events.Rating.stimulus = 14;
+P.Events.Rating.response = 15;
+
+
+%% ==============================================================
+% Choice Task — General Events
+% ==============================================================
+
+P.Events.Choice.blockStart = 20;
+P.Events.Choice.blockEnd   = 21;
+
+P.Events.Choice.fixation = 22;
+P.Events.Choice.mask     = 23;
+
+P.Events.Choice.responseOnset = 24;
+P.Events.Choice.response      = 25;
+
+P.Events.Choice.miss = 26;
+
+
+%% ==============================================================
+% Choice Task — Exposure Events
+% ==============================================================
+
+% Choice exposure is the main experimental manipulation.
+%
+% Each Set Size x Condition combination receives its own EEG code.
+%
+% Rows:
+%       set sizes
+%
+% Columns:
+%       UL  UM  UH  CF  RS
+
+
+P.Events.Choice.conditions = [ ...
+    "UL", ...
+    "UM", ...
+    "UH", ...
+    "CF", ...
+    "RS"];
+
+
+nSetSizes = ...
+    numel(P.Choice.setSizes);
+
+nConditions = ...
+    numel(P.Events.Choice.conditions);
+
+
+exposureStartCode = 30;
+
+
+exposureCodes = ...
+    exposureStartCode : ...
+    exposureStartCode + ...
+    nSetSizes * nConditions - 1;
+
+
+P.Events.Choice.exposure = ...
+    reshape( ...
+        exposureCodes, ...
+        nConditions, ...
+        nSetSizes)';
+
+
+%% ==============================================================
+% Questionnaire
+% ==============================================================
+
+% Questionnaire event codes are generated automatically from
+% P.Questionnaire.nQuestions.
+%
+% No assumption is made about there being exactly three questions.
+
+
+nQuestions = ...
+    P.Questionnaire.nQuestions;
+
+
+questionStartCode = 100;
+
+
+P.Events.Questionnaire.onset = ...
+    questionStartCode + ...
+    (0:nQuestions - 1);
+
+
+P.Events.Questionnaire.response = ...
+    questionStartCode + ...
+    nQuestions + ...
+    (0:nQuestions - 1);
+
+
+P.Events.Questionnaire.timeout = ...
+    questionStartCode + ...
+    2 * nQuestions + ...
+    (0:nQuestions - 1);
+
+
+%% ==============================================================
+% Validate Event-Code Range
+% ==============================================================
+
+allEventCodes = [ ...
+    P.Events.Experiment.start, ...
+    P.Events.Experiment.end, ...
+    P.Events.Rating.practiceStimulus, ...
+    P.Events.Rating.practiceResponse, ...
+    P.Events.Rating.roundStart, ...
+    P.Events.Rating.roundEnd, ...
+    P.Events.Rating.stimulus, ...
+    P.Events.Rating.response, ...
+    P.Events.Choice.blockStart, ...
+    P.Events.Choice.blockEnd, ...
+    P.Events.Choice.fixation, ...
+    P.Events.Choice.mask, ...
+    P.Events.Choice.responseOnset, ...
+    P.Events.Choice.response, ...
+    P.Events.Choice.miss, ...
+    P.Events.Choice.exposure(:)', ...
+    P.Events.Questionnaire.onset, ...
+    P.Events.Questionnaire.response, ...
+    P.Events.Questionnaire.timeout];
+
+
+if max(allEventCodes) > 255
+
+    error( ...
+        ['Event codebook exceeds the 8-bit trigger range ' ...
+         '(maximum code = %d).'], ...
+        max(allEventCodes));
+
+end
+
+
+if numel(unique(allEventCodes)) ~= ...
+        numel(allEventCodes)
+
+    error( ...
+        'Duplicate EEG event codes detected.');
+
+end
+
 end

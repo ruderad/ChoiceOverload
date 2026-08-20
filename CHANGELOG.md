@@ -291,6 +291,7 @@ The sequential questionnaire architecture is implemented and ready for testing.
 ### Changed
 - removed magic numbers from `makeChoiceSets`. The ranges and the number of trial per condition are fully parametric.
 - `CollectSubjectInfo` now has an `order` field.
+- Persian instructions thanks to our new helper function `showInstructionImage`
 
 ### Added
 - Automatic conterbalancing of block order with the option for experimenter to manually determine block order.

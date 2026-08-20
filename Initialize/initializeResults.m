@@ -1,6 +1,16 @@
 function R = initializeResults(P)
 
 %% ==============================================================
+% Event Codebook
+% ==============================================================
+
+% Store the exact event-marker configuration used for this
+% participant so EEG / eye-tracking data can always be decoded
+% against the correct codebook.
+
+R.Events = P.Events;
+
+%% ==============================================================
 %  Preference Rating Task
 %  ==============================================================
 
