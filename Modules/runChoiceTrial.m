@@ -2,37 +2,30 @@ function trial = runChoiceTrial( ...
     P, T, ChoiceSet, condition, ...
     ChoiceLayout, QuestionnaireLayout, questionFiles)
 
-% runChoiceTrial  Run one complete choice-task trial.
+% runChoiceTrial
 %
-%   trial = runChoiceTrial( ...
-%       P, T, ChoiceSet, condition, ...
-%       ChoiceLayout, QuestionnaireLayout, questionFiles)
+% Run one complete choice-task trial.
 %
-%   Trial sequence:
+% Trial sequence:
 %
 %       Fixation
 %       Exposure
 %       Mask
-%       Choice fixation
 %       Response
 %       Questionnaire
 %
-%   Response highlighting:
 %
-%       Response onset:
-%           Yellow border around fixation
+% Timing-critical Choice events:
 %
-%       Hover valid stimulus:
-%           Yellow border around stimulus
+%       CHOICE_FIXATION
+%       CHOICE_EXPOSURE
+%       CHOICE_MASK
+%       CHOICE_RESPONSE_ONSET
 %
-%       Mouse outside valid stimuli:
-%           No highlight
 %
-%       Valid click:
-%           Green border around selected stimulus
-%
-%   The yellow fixation border appears only at response onset.
-%   It does not return after mouse movement begins.
+% Response and miss events are handled inside
+% collectChoiceResponse so they can be emitted immediately when
+% the response or timeout is detected.
 
 
 %% ==============================================================
@@ -51,7 +44,59 @@ trial = struct( ...
         'RT',       nan(1, P.Questionnaire.nQuestions)));
 
 
-stimulusIDs = ChoiceSet;
+stimulusIDs = ...
+    ChoiceSet;
+
+
+condition = ...
+    string(condition);
+
+
+setSize = ...
+    numel(stimulusIDs);
+
+
+%% ==============================================================
+% Resolve Exposure Event Code
+% ==============================================================
+
+% Choice exposure is the main experimental manipulation.
+%
+% Each Set Size x Condition combination has its own EEG code.
+
+exposureCode = getChoiceExposureCode( ...
+    P, ...
+    setSize, ...
+    condition);
+
+
+%% ==============================================================
+% Prepare Response Events
+% ==============================================================
+
+% These are passed into collectChoiceResponse because response
+% and timeout events must be emitted at the moment they are
+% detected, before any feedback delay.
+
+
+ResponseEvent.responseName = sprintf( ...
+    'CHOICE_RESPONSE setSize=%d condition=%s', ...
+    setSize, ...
+    char(condition));
+
+
+ResponseEvent.responseCode = ...
+    P.Events.Choice.response;
+
+
+ResponseEvent.missName = sprintf( ...
+    'CHOICE_MISS setSize=%d condition=%s', ...
+    setSize, ...
+    char(condition));
+
+
+ResponseEvent.missCode = ...
+    P.Events.Choice.miss;
 
 
 %% ==============================================================
@@ -63,13 +108,15 @@ positions = randomizeChoicePositions( ...
     numel(stimulusIDs));
 
 
-trial.positions = positions;
+trial.positions = ...
+    positions;
 
 
 %% ==============================================================
 % Fixation
 % ==============================================================
-HideCursor; 
+
+HideCursor;
 
 
 Screen( ...
@@ -78,7 +125,7 @@ Screen( ...
     P.Screen.backgroundColor);
 
 
-%% Fixation tile
+%% Fixation Tile
 
 Screen( ...
     'FillRect', ...
@@ -87,7 +134,7 @@ Screen( ...
     ChoiceLayout.fixation);
 
 
-%% Horizontal fixation line
+%% Horizontal Fixation Line
 
 Screen( ...
     'DrawLine', ...
@@ -100,7 +147,7 @@ Screen( ...
     P.Choice.Layout.fixationCrossWidth);
 
 
-%% Vertical fixation line
+%% Vertical Fixation Line
 
 Screen( ...
     'DrawLine', ...
@@ -113,9 +160,38 @@ Screen( ...
     P.Choice.Layout.fixationCrossWidth);
 
 
-Screen('Flip', T.window);
+%% --------------------------------------------------------------
+% Fixation Onset
+% ---------------------------------------------------------------
 
-WaitSecs(P.Choice.fixationDuration);
+fixationOnset = ...
+    Screen('Flip', T.window);
+
+
+%% --------------------------------------------------------------
+% Fixation Event
+% ---------------------------------------------------------------
+
+eventName = sprintf( ...
+    'CHOICE_FIXATION setSize=%d condition=%s', ...
+    setSize, ...
+    char(condition));
+
+
+sendEvent( ...
+    P, ...
+    T, ...
+    "Choice", ...
+    eventName, ...
+    P.Events.Choice.fixation);
+
+
+%% --------------------------------------------------------------
+% Maintain Fixation
+% ---------------------------------------------------------------
+
+WaitSecs( ...
+    P.Choice.fixationDuration);
 
 
 %% ==============================================================
@@ -138,9 +214,38 @@ drawChoiceSet( ...
     positions);
 
 
-Screen('Flip', T.window);
+%% --------------------------------------------------------------
+% Exposure Onset
+% ---------------------------------------------------------------
 
-WaitSecs(P.Choice.exposureDuration);
+exposureOnset = ...
+    Screen('Flip', T.window);
+
+
+%% --------------------------------------------------------------
+% Exposure Event
+% ---------------------------------------------------------------
+
+eventName = sprintf( ...
+    'CHOICE_EXPOSURE setSize=%d condition=%s', ...
+    setSize, ...
+    char(condition));
+
+
+sendEvent( ...
+    P, ...
+    T, ...
+    "Choice", ...
+    eventName, ...
+    exposureCode);
+
+
+%% --------------------------------------------------------------
+% Maintain Exposure
+% ---------------------------------------------------------------
+
+WaitSecs( ...
+    P.Choice.exposureDuration);
 
 
 %% ==============================================================
@@ -160,33 +265,62 @@ Screen( ...
     ChoiceLayout.rect');
 
 
-Screen('Flip', T.window);
+%% --------------------------------------------------------------
+% Mask Onset
+% ---------------------------------------------------------------
 
-WaitSecs(P.Choice.maskDuration);
+maskOnset = ...
+    Screen('Flip', T.window);
+
+
+%% --------------------------------------------------------------
+% Mask Event
+% ---------------------------------------------------------------
+
+eventName = sprintf( ...
+    'CHOICE_MASK setSize=%d condition=%s', ...
+    setSize, ...
+    char(condition));
+
+
+sendEvent( ...
+    P, ...
+    T, ...
+    "Choice", ...
+    eventName, ...
+    P.Events.Choice.mask);
+
+
+%% --------------------------------------------------------------
+% Maintain Mask
+% ---------------------------------------------------------------
+
+WaitSecs( ...
+    P.Choice.maskDuration);
 
 
 % %% ==============================================================
 % % Choice Fixation
 % % ==============================================================
-% 
+%
 % Screen( ...
 %     'FillRect', ...
 %     T.window, ...
 %     P.Screen.backgroundColor);
-% 
-% 
-% %% Fixation border
-% 
+%
+%
+% %% Fixation Border
+%
 % Screen( ...
 %     'FrameRect', ...
 %     T.window, ...
 %     P.Choice.Layout.fixationColor, ...
 %     ChoiceLayout.fixation, ...
 %     P.Choice.Layout.fixationBorderWidth);
-% 
-% 
-% %% Horizontal fixation line
-% 
+%
+%
+% %% Horizontal Fixation Line
+%
 % Screen( ...
 %     'DrawLine', ...
 %     T.window, ...
@@ -196,10 +330,10 @@ WaitSecs(P.Choice.maskDuration);
 %     ChoiceLayout.fixationCross.horizontal(3), ...
 %     ChoiceLayout.fixationCross.horizontal(4), ...
 %     P.Choice.Layout.fixationCrossWidth);
-% 
-% 
-% %% Vertical fixation line
-% 
+%
+%
+% %% Vertical Fixation Line
+%
 % Screen( ...
 %     'DrawLine', ...
 %     T.window, ...
@@ -209,10 +343,10 @@ WaitSecs(P.Choice.maskDuration);
 %     ChoiceLayout.fixationCross.vertical(3), ...
 %     ChoiceLayout.fixationCross.vertical(4), ...
 %     P.Choice.Layout.fixationCrossWidth);
-% 
-% 
+%
+%
 % Screen('Flip', T.window);
-% 
+%
 % WaitSecs(P.Choice.choiceFixationDuration);
 
 
@@ -224,6 +358,7 @@ WaitSecs(P.Choice.maskDuration);
 % as the participant display.
 %
 % IMPORTANT:
+%
 % We do NOT call drawChoiceSet using this window.
 %
 % readimg -> Screen('MakeTexture') must continue using T.window.
@@ -281,13 +416,16 @@ Screen( ...
 mouseStartX = round( ...
     mean(ChoiceLayout.fixation([1 3])));
 
+
 mouseStartY = round( ...
     mean(ChoiceLayout.fixation([2 4])));
+
 
 SetMouse( ...
     mouseStartX, ...
     mouseStartY, ...
     T.window);
+
 
 %% ==============================================================
 % Response Phase Onset
@@ -297,7 +435,9 @@ SetMouse( ...
 % backbuffer from drawChoiceSet.
 %
 % Add the yellow fixation cue before the first response-phase flip.
+
 ShowCursor('Arrow');
+
 
 drawResponseHighlight( ...
     T.window, ...
@@ -306,8 +446,32 @@ drawResponseHighlight( ...
     P.Choice.Highlight.borderWidth);
 
 
+%% --------------------------------------------------------------
+% Response Onset Flip
+% ---------------------------------------------------------------
+
 % This flip marks the true response-phase onset.
-choiceOnset = Screen('Flip', T.window);
+
+choiceOnset = ...
+    Screen('Flip', T.window);
+
+
+%% --------------------------------------------------------------
+% Response Onset Event
+% ---------------------------------------------------------------
+
+eventName = sprintf( ...
+    'CHOICE_RESPONSE_ONSET setSize=%d condition=%s', ...
+    setSize, ...
+    char(condition));
+
+
+sendEvent( ...
+    P, ...
+    T, ...
+    "Choice", ...
+    eventName, ...
+    P.Events.Choice.responseOnset);
 
 
 %% ==============================================================
@@ -315,17 +479,23 @@ choiceOnset = Screen('Flip', T.window);
 % ==============================================================
 
 [response, RT] = collectChoiceResponse( ...
-    T.window, ...
+    P, ...
+    T, ...
     responseBuffer, ...
     ChoiceLayout, ...
     positions.stimulus, ...
     choiceOnset, ...
     P.Choice.choiceDuration, ...
-    P.Choice.Highlight);
+    P.Choice.Highlight, ...
+    ResponseEvent);
 
 
-trial.response = response;
-trial.RT = RT;
+trial.response = ...
+    response;
+
+
+trial.RT = ...
+    RT;
 
 
 %% ==============================================================
@@ -343,10 +513,17 @@ Screen( ...
 
 if isempty(response)
 
-    trial.selectedImage = NaN;
+    trial.selectedImage = ...
+        NaN;
+
 
     % Questionnaire fields already contain NaN values.
+    %
+    % CHOICE_MISS has already been emitted inside
+    % collectChoiceResponse at the actual timeout.
+    %
     % Skip questionnaire after a missed choice.
+
     return;
 
 end
@@ -371,7 +548,8 @@ if isempty(stimulusIndex)
 end
 
 
-trial.selectedImage = stimulusIDs(stimulusIndex);
+trial.selectedImage = ...
+    stimulusIDs(stimulusIndex);
 
 
 %% ==============================================================
@@ -385,8 +563,12 @@ trial.selectedImage = stimulusIDs(stimulusIndex);
     questionFiles);
 
 
-trial.question.response = questionResponse;
-trial.question.RT = questionRT;
+trial.question.response = ...
+    questionResponse;
+
+
+trial.question.RT = ...
+    questionRT;
 
 
 end

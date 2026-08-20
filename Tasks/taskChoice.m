@@ -7,6 +7,10 @@ function R = taskChoice(R, P, T, ChoiceSets)
 %   Creates the choice-task and questionnaire layouts and runs all
 %   configured choice blocks.
 %
+%   Choice block start/end events are emitted here because this
+%   function owns the resolved block order and current set size.
+%
+%
 %   Inputs:
 %       R          - Results structure.
 %       P          - Parameter structure.
@@ -18,10 +22,15 @@ function R = taskChoice(R, P, T, ChoiceSets)
 %       R          - Updated results structure.
 
 
+%% ==============================================================
+% Choice Instructions
+% ==============================================================
+
 showInstructionImage( ...
     P.Instructions.choiceInstruction, ...
     P, ...
     T);
+
 
 ShowCursor('Arrow');
 
@@ -30,7 +39,9 @@ ShowCursor('Arrow');
 % Choice Layout
 % ==============================================================
 
-ChoiceLayout = makeChoiceLayout(P);
+ChoiceLayout = ...
+    makeChoiceLayout(P);
+
 
 ChoiceLayout = convertChoiceLayout( ...
     ChoiceLayout, ...
@@ -41,7 +52,9 @@ ChoiceLayout = convertChoiceLayout( ...
 % Questionnaire Layout
 % ==============================================================
 
-QuestionnaireLayout = makeQuestionnaireLayout(P);
+QuestionnaireLayout = ...
+    makeQuestionnaireLayout(P);
+
 
 QuestionnaireLayout = convertQuestionnaireLayout( ...
     QuestionnaireLayout, ...
@@ -52,11 +65,15 @@ QuestionnaireLayout = convertQuestionnaireLayout( ...
 % Questionnaire Files
 % ==============================================================
 
-questionFiles = P.Questionnaire.questionFiles;
+questionFiles = ...
+    P.Questionnaire.questionFiles;
 
 
 % Check expected number of files.
-expectedFileCount = P.Questionnaire.nQuestions + 1;
+
+expectedFileCount = ...
+    P.Questionnaire.nQuestions + 1;
+
 
 if numel(questionFiles) ~= expectedFileCount
 
@@ -70,6 +87,7 @@ end
 
 
 % Check that every questionnaire image exists.
+
 for q = 1:numel(questionFiles)
 
     if ~isfile(questionFiles{q})
@@ -84,10 +102,6 @@ end
 
 
 %% ==============================================================
-% Run Blocks
-% ==============================================================
-
-%% ==============================================================
 % Resolve Block Order
 % ==============================================================
 
@@ -98,26 +112,34 @@ end
     P.Choice.setSizes, ...
     'ascend');
 
+
 [~, descendingOrder] = sort( ...
     P.Choice.setSizes, ...
     'descend');
 
 
-requestedOrder = string(R.Subject.BlockOrder);
+requestedOrder = ...
+    string(R.Subject.BlockOrder);
 
 
 switch requestedOrder
 
     case "Ascending"
 
-        blockOrder = ascendingOrder;
-        resolvedOrder = "Ascending";
+        blockOrder = ...
+            ascendingOrder;
+
+        resolvedOrder = ...
+            "Ascending";
 
 
     case "Descending"
 
-        blockOrder = descendingOrder;
-        resolvedOrder = "Descending";
+        blockOrder = ...
+            descendingOrder;
+
+        resolvedOrder = ...
+            "Descending";
 
 
     case "Auto"
@@ -154,13 +176,19 @@ switch requestedOrder
 
         if mod(participantNumber, 2) == 1
 
-            blockOrder = ascendingOrder;
-            resolvedOrder = "Ascending";
+            blockOrder = ...
+                ascendingOrder;
+
+            resolvedOrder = ...
+                "Ascending";
 
         else
 
-            blockOrder = descendingOrder;
-            resolvedOrder = "Descending";
+            blockOrder = ...
+                descendingOrder;
+
+            resolvedOrder = ...
+                "Descending";
 
         end
 
@@ -169,20 +197,63 @@ switch requestedOrder
 
         error( ...
             'Unknown block-order setting: %s', ...
-            requestedOrder);
+            char(requestedOrder));
 
 end
 
 
-%% Store Actual Order
+%% ==============================================================
+% Store Actual Order
+% ==============================================================
 
-R.Choice.blockOrderCondition = resolvedOrder;
-R.Choice.blockOrder = blockOrder;
+R.Choice.blockOrderCondition = ...
+    resolvedOrder;
+
+
+R.Choice.blockOrder = ...
+    blockOrder;
+
+
+%% ==============================================================
+% Run Blocks
+% ==============================================================
 
 for block = 1:numel(blockOrder)
 
-    setSizeIndex = blockOrder(block);
 
+    %% ----------------------------------------------------------
+    % Resolve Current Set Size
+    % -----------------------------------------------------------
+
+    setSizeIndex = ...
+        blockOrder(block);
+
+
+    setSize = ...
+        P.Choice.setSizes(setSizeIndex);
+
+
+    %% ----------------------------------------------------------
+    % Block Start Event
+    % -----------------------------------------------------------
+
+    eventName = sprintf( ...
+        'CHOICE_BLOCK_START block=%d setSize=%d', ...
+        block, ...
+        setSize);
+
+
+    sendEvent( ...
+        P, ...
+        T, ...
+        "Choice", ...
+        eventName, ...
+        P.Events.Choice.blockStart);
+
+
+    %% ----------------------------------------------------------
+    % Run Block
+    % -----------------------------------------------------------
 
     R.Choice.block(block) = runChoiceBlock( ...
         P, ...
@@ -192,12 +263,27 @@ for block = 1:numel(blockOrder)
         QuestionnaireLayout, ...
         questionFiles);
 
+
+    %% ----------------------------------------------------------
+    % Block End Event
+    % -----------------------------------------------------------
+
+    eventName = sprintf( ...
+        'CHOICE_BLOCK_END block=%d setSize=%d', ...
+        block, ...
+        setSize);
+
+
+    sendEvent( ...
+        P, ...
+        T, ...
+        "Choice", ...
+        eventName, ...
+        P.Events.Choice.blockEnd);
+
+
 end
 
-
-%% ==============================================================
-% Finish
-% ==============================================================
 
 %% ==============================================================
 % Experiment Finished

@@ -16,39 +16,7 @@ function [rating, RT] = collectSliderResponse( ...
 %   Subsequent slider redraws do not generate stimulus markers.
 %
 %   Reaction time is measured from the actual first screen flip
-%   until the confirming left mouse click.
-%
-%
-%   INPUTS
-%
-%       textureID
-%           Psychtoolbox texture containing the stimulus image.
-%
-%       imageRect
-%           Destination rectangle for the stimulus image.
-%
-%       P
-%           Parameter structure.
-%
-%       T
-%           Task structure.
-%
-%       Event
-%           Structure describing the stimulus and response events:
-%
-%               Event.stimulusName
-%               Event.stimulusCode
-%               Event.responseName
-%               Event.responseCode
-%
-%
-%   OUTPUTS
-%
-%       rating
-%           Final preference rating.
-%
-%       RT
-%           Response time in seconds.
+%   until the detected confirming left mouse click.
 
 
 %% ==============================================================
@@ -149,6 +117,15 @@ while true
         GetMouse(T.window);
 
 
+    % Timestamp the mouse sample immediately.
+    %
+    % GetMouse does not provide its own timestamp, so this is the
+    % closest software timestamp to the detected response.
+
+    mouseSampleTime = ...
+        GetSecs;
+
+
     %% ----------------------------------------------------------
     % Convert Mouse Position to Rating
     % -----------------------------------------------------------
@@ -190,26 +167,6 @@ while true
 
 
     %% ----------------------------------------------------------
-    % Draw Updated Screen
-    % -----------------------------------------------------------
-
-    % IMPORTANT:
-    %
-    % No event is sent here.
-    %
-    % This function may redraw many times while the participant
-    % moves the slider, but only the FIRST presentation above
-    % receives the stimulus-onset marker.
-
-    drawRatingScreen( ...
-        textureID, ...
-        imageRect, ...
-        rating, ...
-        P, ...
-        T);
-
-
-    %% ----------------------------------------------------------
     % Confirm with Left Mouse Button
     % -----------------------------------------------------------
 
@@ -218,12 +175,8 @@ while true
 
         %% Response Time
 
-        responseTime = ...
-            GetSecs;
-
-
         RT = ...
-            responseTime - startTime;
+            mouseSampleTime - startTime;
 
 
         %% Response Event
@@ -242,7 +195,26 @@ while true
             Event.responseCode);
 
 
-        %% Wait for Left Mouse Button Release
+        %% ------------------------------------------------------
+        % Final Slider Display
+        % -------------------------------------------------------
+
+        % Draw the final selected slider position.
+        %
+        % This happens AFTER the response timestamp/event so the
+        % screen flip cannot delay the recorded response time.
+
+        drawRatingScreen( ...
+            textureID, ...
+            imageRect, ...
+            rating, ...
+            P, ...
+            T);
+
+
+        %% ------------------------------------------------------
+        % Wait for Left Mouse Button Release
+        % -------------------------------------------------------
 
         while true
 
@@ -262,6 +234,21 @@ while true
         break;
 
     end
+
+
+    %% ----------------------------------------------------------
+    % Draw Updated Screen
+    % -----------------------------------------------------------
+
+    % No event is sent for ordinary slider redraws.
+
+    drawRatingScreen( ...
+        textureID, ...
+        imageRect, ...
+        rating, ...
+        P, ...
+        T);
+
 
 end
 
