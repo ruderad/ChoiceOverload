@@ -122,19 +122,10 @@ validateRatingStructure(P, Log.Rating, Report);
 % Choice Validation
 % ==============================================================
 
-choiceMask = ...
-    data.task == "Choice";
-
-
-choiceEvents = ...
-    data(choiceMask,:);
-
-
-validateChoiceSequence( ...
+validateChoiceStructure( ...
     P, ...
-    choiceEvents, ...
+    Log.Choice, ...
     Report);
-
 
 
 %% ==============================================================
@@ -290,13 +281,15 @@ end
 % Choice Validator
 % ==============================================================
 
-function validateChoiceSequence(P, events, Report)
+function validateChoiceStructure(P, Choice, Report)
 
 
-if isempty(events)
+%% Check blocks
+
+if isempty(Choice.blocks)
 
     Report.errors{end+1} = ...
-        "No Choice events detected.";
+        "No Choice blocks detected.";
 
     return;
 
@@ -304,55 +297,109 @@ end
 
 
 
-codes = events.code;
+%% Count trials
 
-
-trialStarts = find( ...
-    codes == P.Events.Choice.fixation);
+nTrials = 0;
 
 
 
-for i = 1:length(trialStarts)
+%% Validate each block
+
+for b = 1:length(Choice.blocks)
 
 
-    idx = trialStarts(i);
+    block = Choice.blocks(b);
 
 
-    remaining = codes(idx:end);
+    trials = block.trials;
 
 
-    if isempty(remaining)
+    nTrials = nTrials + length(trials);
 
 
-        Report.errors{end+1} = ...
-            "Incomplete Choice trial.";
 
-        continue;
+    for t = 1:length(trials)
+
+
+        trial = trials(t);
+
+
+
+        %% Fixation
+
+        if isempty(trial.fixation)
+
+            Report.errors{end+1} = sprintf( ...
+                "Choice block %d trial %d missing fixation.", ...
+                b,t);
+
+        end
+
+
+
+        %% Exposure
+
+        if isempty(trial.exposure)
+
+            Report.errors{end+1} = sprintf( ...
+                "Choice block %d trial %d missing exposure.", ...
+                b,t);
+
+        end
+
+
+
+        %% Mask
+
+        if isempty(trial.mask)
+
+            Report.errors{end+1} = sprintf( ...
+                "Choice block %d trial %d missing mask.", ...
+                b,t);
+
+        end
+
+
+
+        %% Response onset
+
+        if isempty(trial.responseOnset)
+
+            Report.errors{end+1} = sprintf( ...
+                "Choice block %d trial %d missing response onset.", ...
+                b,t);
+
+        end
+
+
+
+        %% Response / Miss
+
+        if isempty(trial.response)
+
+            Report.warnings{end+1} = sprintf( ...
+                "Choice block %d trial %d has no response.", ...
+                b,t);
+
+        end
+
+
+
+        %% Questionnaire rule
+
+        % A questionnaire should only appear after a successful choice.
+        % Detailed ordering will be added later.
 
     end
-
-
-
-    % fixation must be followed by exposure
-
-    if ~any(ismember( ...
-            remaining(2:end), ...
-            P.Events.Choice.exposure(:)))
-
-
-        Report.errors{end+1} = ...
-            "Choice fixation without exposure.";
-
-    end
-
 
 end
 
 
 
+Report.nChoiceTrials = nTrials;
+
+
 end
-
-
 
 %% ==============================================================
 % Print
