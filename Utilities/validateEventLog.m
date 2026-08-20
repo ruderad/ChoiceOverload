@@ -1,4 +1,4 @@
-function Report = validateEventLog(P, filepath)
+function Report = validateEventLog(P, Log)
 
 % validateEventLog
 %
@@ -17,7 +17,9 @@ function Report = validateEventLog(P, filepath)
 %
 % Usage:
 %
-%   Report = validateEventLog(P, filepath);
+% Log = parseEventLog(filepath);
+%
+% Report = validateEventLog(P, Log);
 
 
 %% ==============================================================
@@ -26,14 +28,14 @@ function Report = validateEventLog(P, filepath)
 
 Report.pass = true;
 
-Report.file = filepath;
+Report.file = Log.File;
 
 Report.errors = {};
 
 Report.warnings = {};
 
 
-Report.nEvents = 0;
+Report.nEvents = height(Log.Events);
 
 Report.nRatingTrials = 0;
 
@@ -60,32 +62,6 @@ end
 
 
 
-%% ==============================================================
-% Read Log
-% ==============================================================
-
-opts = detectImportOptions(filepath, ...
-    'FileType','text');
-
-
-opts.CommentStyle = '#';
-
-
-opts.VariableNames = ...
-    {'timestamp','task','code','event'};
-
-
-opts = setvartype(opts, ...
-    {'task','event'}, ...
-    'string');
-
-
-data = readtable(filepath, opts);
-
-
-
-Report.nEvents = ...
-    height(data);
 
 
 
