@@ -354,6 +354,7 @@ for b = 1:length(Choice.blocks)
 
             validateExposure( ...
                 P, ...
+                Choice.blocks(b), ...
                 trial, ...
                 b, ...
                 t, ...
@@ -416,14 +417,12 @@ end
 % Exposure Validator
 % ==============================================================
 
-function validateExposure(P, trial, blockIndex, trialIndex, Report)
+function validateExposure(P, block, trial, blockIndex, trialIndex, Report)
 
 
 observedCode = trial.exposure.code;
 
 
-
-% Multiple exposure events are suspicious
 
 if length(observedCode) ~= 1
 
@@ -440,17 +439,46 @@ end
 
 
 
-expectedCodes = P.Events.Choice.exposure(:);
+%% --------------------------------------------------------------
+% Determine expected exposure
+% --------------------------------------------------------------
+
+try
 
 
+    expectedCode = getChoiceExposureCode( ...
+        P, ...
+        block);
 
-if ~ismember(observedCode, expectedCodes)
+
+catch
 
 
     Report.errors{end+1}=sprintf( ...
-        "Choice block %d trial %d has invalid exposure code.", ...
+        "Cannot determine expected exposure for block %d.", ...
+        blockIndex);
+
+
+    return;
+
+
+end
+
+
+
+%% --------------------------------------------------------------
+% Compare
+% --------------------------------------------------------------
+
+if observedCode ~= expectedCode
+
+
+    Report.errors{end+1}=sprintf( ...
+        "Choice block %d trial %d exposure mismatch. Expected %d, got %d.", ...
         blockIndex, ...
-        trialIndex);
+        trialIndex, ...
+        expectedCode, ...
+        observedCode);
 
 
 end
