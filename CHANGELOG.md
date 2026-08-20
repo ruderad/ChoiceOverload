@@ -296,3 +296,105 @@ The sequential questionnaire architecture is implemented and ready for testing.
 ### Added
 - Automatic conterbalancing of block order with the option for experimenter to manually determine block order.
 
+## V0.3.0 - EEG & Eye-Tracking Event Marker Architecture
+
+### Added
+
+- Acquisition architecture for future EEG and eye-tracking hardware integration.
+
+- New acquisition lifecycle modules:
+
+  - `initializeAcquisition.m`
+  - `cleanupAcquisition.m`
+
+- New task-aware event router:
+
+  - `sendEvent.m`
+
+- Debug mode now acts as the master acquisition bypass.
+
+  When:
+
+  ```matlab
+  P.Debug.enabled = true;
+  ```
+  the behavioral experiment continues normally while EEG and eye-tracking initialization and event transmission are completely bypassed
+
+- Independent acquisition configuration for EEG and eye tracking:
+
+```
+P.Acquisition.EEG.enabled
+P.Acquisition.EEG.PreferenceRating
+P.Acquisition.EEG.Choice
+
+P.Acquisition.EyeTracker.enabled
+P.Acquisition.EyeTracker.PreferenceRating
+P.Acquisition.EyeTracker.Choice
+```
+
+- Centeralized event-marker codebook (`P.Events`)
+
+- Event-codebook validation:
+    - verifies all event codes remain within the 8-bit trigger range
+    - detects duplicate EEG event codes
+
+- Exact event-codebook configuration is now stored in participant results: `R.Events = P.Events`
+
+- Added getChoiceExposureCode.m for dynamic resolution of Set Size × Condition exposure markers.
+
+- Choice Timing Improvements
+
+### Changed
+
+- `main.m` now initializes acquisition after Psychtoolbox initialization and
+performs acquisition cleanup during both normal completion and error handling.
+
+- `drawRatingScreen.m` now returns the Psychtoolbox flip timestamp.
+
+- `runRatingTrial.m` now distinguishes between practice
+and main
+
+- `collectSliderResponse.m`, `collectChoiceResponse.m`, and `collectQuestionnaireResponse.m` now separate behavioral response timing from visual-feedback timing.
+
+- Questionnaire acquisition events are routed through the Choice task because the questionnaire is executed as part of successful Choice trials.
+
+### Status
+
+The behavioral experiment and task-level event-marker architecture are now considered frozen.
+
+```
+Completed:
+
+Preference Rating markers    ✓
+Choice Task markers          ✓
+Questionnaire markers        ✓
+Dynamic exposure codes       ✓
+Dynamic questionnaire codes  ✓
+Event-code validation        ✓
+Event codebook saved         ✓
+Debug acquisition bypass     ✓
+```
+
+Actual EEG and eye-tracker hardware communication has intentionally not yet
+been implemented.
+
+### Planned 
+
+The event codebook currently reserves:
+
+1  Experiment start
+2  Experiment end
+
+Experiment-level marker routing will be finalized together with the real acquisition lifecycle rather than forcing these events through a task-specific
+route.
+
+**Next development stage:**
+
+- implement the actual EEG trigger backend
+- implement the actual eye-tracker backend
+- finalize experiment start/end acquisition lifecycle
+- harden cleanup for partial hardware initialization
+- validate real hardware timing
+- perform synchronization testing
+
+
