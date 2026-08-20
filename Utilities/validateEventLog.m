@@ -43,6 +43,8 @@ Report.nChoiceTrials = 0;
 
 Report.nQuestionnaires = 0;
 
+data = Log.Events;
+
 
 
 %% ==============================================================
@@ -113,18 +115,7 @@ end
 % Preference Validation
 % ==============================================================
 
-ratingMask = ...
-    data.task == "PreferenceRating";
-
-
-ratingEvents = ...
-    data(ratingMask,:);
-
-
-validateRatingSequence( ...
-    ratingEvents, ...
-    Report);
-
+validateRatingStructure(P, Log.Rating, Report);
 
 
 %% ==============================================================
@@ -221,42 +212,78 @@ end
 %% ==============================================================
 % Preference Validator
 % ==============================================================
+function validateRatingStructure(P, Rating, Report)
 
-function validateRatingSequence(events, Report)
 
+%% No rating data
 
-if isempty(events)
+if isempty(Rating.trials)
 
     Report.warnings{end+1} = ...
-        "No Preference Rating events detected.";
+        "No Preference Rating trials detected.";
 
     return;
 
 end
 
 
-codes = events.code;
+
+%% Count trials
+
+Report.nRatingTrials = ...
+    length(Rating.trials);
 
 
-if codes(1) ~= 10
+
+%% Practice validation
+
+if isempty(Rating.practice.stimulus)
 
     Report.errors{end+1} = ...
-        "Preference Rating does not start with practice stimulus.";
+        "Preference Rating practice stimulus missing.";
 
 end
 
 
-if ~ismember(13,codes)
+if isempty(Rating.practice.response)
 
     Report.errors{end+1} = ...
-        "Preference Rating round end missing.";
+        "Preference Rating practice response missing.";
 
 end
 
 
 
+%% Main trial validation
+
+for i = 1:length(Rating.trials)
+
+
+    trial = Rating.trials(i);
+
+
+    if isempty(trial.stimulus)
+
+        Report.errors{end+1} = sprintf( ...
+            "Rating trial %d missing stimulus.", ...
+            i);
+
+    end
+
+
+    if isempty(trial.response)
+
+        Report.errors{end+1} = sprintf( ...
+            "Rating trial %d missing response.", ...
+            i);
+
+    end
+
+
 end
 
+
+end
 
 
 %% ==============================================================
