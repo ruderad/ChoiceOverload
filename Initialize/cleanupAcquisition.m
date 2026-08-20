@@ -2,7 +2,7 @@ function cleanupAcquisition(P, T)
 
 % cleanupAcquisition
 %
-% Safely shut down external acquisition hardware.
+% Safely shut down acquisition infrastructure.
 %
 % Safe to call:
 %
@@ -25,10 +25,10 @@ end
 
 
 %% ==============================================================
-% Debug Mode
+% Acquisition Initialized?
 % ==============================================================
 
-if P.Debug.enabled
+if ~isfield(T, 'Acquisition')
 
     return;
 
@@ -36,10 +36,26 @@ end
 
 
 %% ==============================================================
-% Acquisition Initialized?
+% Event Logger
 % ==============================================================
 
-if ~isfield(T, 'Acquisition')
+% The logger may be active even when Debug mode is enabled,
+% therefore it must be cleaned before the Debug return.
+
+if isfield(T.Acquisition, 'EventLog') && ...
+        T.Acquisition.EventLog.active
+
+    eventLogger( ...
+        "close");
+
+end
+
+
+%% ==============================================================
+% Debug Mode
+% ==============================================================
+
+if P.Debug.enabled
 
     return;
 

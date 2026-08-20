@@ -28,6 +28,23 @@ P.Debug.enabled = true;
 %   EEG        -> completely bypassed
 %   EyeTracker -> completely bypassed
 
+%% Event Log
+
+% Development / validation event logger.
+%
+% This logger is independent of Debug mode.
+%
+% When enabled, every sendEvent(...) call is written to a
+% session-specific TSV file under Logs/.
+%
+% This allows the complete event-marker sequence to be validated
+% without EEG or eye-tracking hardware.
+
+P.Acquisition.EventLog.enabled = true;
+
+P.Acquisition.EventLog.folder = ...
+    fullfile(P.Experiment.root, 'Logs');
+
 
 %% EEG
 

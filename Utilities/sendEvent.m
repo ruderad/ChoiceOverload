@@ -3,29 +3,70 @@ function sendEvent( ...
 
 % sendEvent
 %
-% Route one experimental event to the appropriate acquisition
-% devices.
+% Route one experimental event to:
+%
+%   development event logger
+%   EEG
+%   eye tracker
+%
+%
+% The event logger is independent of Debug mode.
+%
+% Hardware transmission remains completely bypassed when:
+%
+%   P.Debug.enabled = true
+%
 %
 % Inputs:
 %
 %   taskName
-%       Name of the task producing the event:
 %
-%           "PreferenceRating"
-%           "Choice"
+%       "PreferenceRating"
+%       "Choice"
+%
 %
 %   eventName
-%       Descriptive event label for systems such as eye tracking.
+%
+%       Descriptive event label.
+%
 %
 %   eventCode
-%       Numeric event code for EEG.
 %
-% Device routing depends on both:
+%       Numeric EEG trigger code.
+
+
+%% ==============================================================
+% Normalize Event
+% ==============================================================
+
+taskName = ...
+    char(string(taskName));
+
+
+eventName = ...
+    char(string(eventName));
+
+
+%% ==============================================================
+% Development Event Logger
+% ==============================================================
+
+% Log BEFORE the Debug return.
 %
-%   device enabled
-%   task enabled for that device
-%
-% Debug mode bypasses all event transmission.
+% This allows a complete event sequence to be captured while all
+% external acquisition hardware remains bypassed.
+
+if isfield(T, 'Acquisition') && ...
+        isfield(T.Acquisition, 'EventLog') && ...
+        T.Acquisition.EventLog.active
+
+    eventLogger( ...
+        "write", ...
+        taskName, ...
+        eventName, ...
+        eventCode);
+
+end
 
 
 %% ==============================================================
@@ -54,9 +95,6 @@ end
 %% ==============================================================
 % Resolve Task
 % ==============================================================
-
-taskName = char(string(taskName));
-
 
 if ~isfield(P.Acquisition.EEG, taskName)
 
