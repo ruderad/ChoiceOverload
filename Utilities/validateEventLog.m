@@ -160,36 +160,36 @@ function codes = collectEventCodes(P)
 codes = [
 
 
-    P.Events.Experiment.start
-    P.Events.Experiment.end
+P.Events.Experiment.start
+P.Events.Experiment.end
 
 
-    P.Events.Rating.practiceStimulus
-    P.Events.Rating.practiceResponse
+P.Events.Rating.practiceStimulus
+P.Events.Rating.practiceResponse
 
-    P.Events.Rating.roundStart
-    P.Events.Rating.roundEnd
+P.Events.Rating.roundStart
+P.Events.Rating.roundEnd
 
-    P.Events.Rating.stimulus
-    P.Events.Rating.response
-
-
-    P.Events.Choice.blockStart
-    P.Events.Choice.blockEnd
-
-    P.Events.Choice.fixation
-    P.Events.Choice.mask
-
-    P.Events.Choice.responseOnset
-    P.Events.Choice.response
-    P.Events.Choice.miss
-
-    P.Events.Choice.exposure(:)
+P.Events.Rating.stimulus
+P.Events.Rating.response
 
 
-    P.Events.Questionnaire.onset(:)
-    P.Events.Questionnaire.response(:)
-    P.Events.Questionnaire.timeout(:)
+P.Events.Choice.blockStart
+P.Events.Choice.blockEnd
+
+P.Events.Choice.fixation
+P.Events.Choice.mask
+
+P.Events.Choice.responseOnset
+P.Events.Choice.response
+P.Events.Choice.miss
+
+P.Events.Choice.exposure(:)
+
+
+P.Events.Questionnaire.onset(:)
+P.Events.Questionnaire.response(:)
+P.Events.Questionnaire.timeout(:)
 
 ];
 
@@ -349,6 +349,17 @@ for b = 1:length(Choice.blocks)
                 b,t);
 
 
+        else
+
+
+            validateExposure( ...
+                P, ...
+                trial, ...
+                b, ...
+                t, ...
+                Report);
+
+
         end
 
 
@@ -397,6 +408,52 @@ end
 
 
 Report.nChoiceTrials = nTrials;
+
+
+end
+
+%% ==============================================================
+% Exposure Validator
+% ==============================================================
+
+function validateExposure(P, trial, blockIndex, trialIndex, Report)
+
+
+observedCode = trial.exposure.code;
+
+
+
+% Multiple exposure events are suspicious
+
+if length(observedCode) ~= 1
+
+
+    Report.errors{end+1}=sprintf( ...
+        "Choice block %d trial %d has invalid exposure count.", ...
+        blockIndex, ...
+        trialIndex);
+
+
+    return;
+
+end
+
+
+
+expectedCodes = P.Events.Choice.exposure(:);
+
+
+
+if ~ismember(observedCode, expectedCodes)
+
+
+    Report.errors{end+1}=sprintf( ...
+        "Choice block %d trial %d has invalid exposure code.", ...
+        blockIndex, ...
+        trialIndex);
+
+
+end
 
 
 end
