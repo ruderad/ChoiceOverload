@@ -2,24 +2,16 @@ function Report = validateEventLog(P, Log)
 
 % validateEventLog
 %
-% Validate a parsed Choice Overload event log.
+% Validate parsed Choice Overload event log.
 %
 % Usage:
 %
 % Log = parseEventLog(filepath);
-%
 % Report = validateEventLog(P, Log);
-%
-%
-% The validator uses:
-%
-%       P.Events
-%
-% as the source of truth for event definitions.
 
 
 %% ==============================================================
-% Initialize Report
+% Initialize
 % ==============================================================
 
 Report.pass = true;
@@ -29,7 +21,6 @@ Report.file = Log.File;
 Report.errors = {};
 
 Report.warnings = {};
-
 
 Report.nEvents = height(Log.Events);
 
@@ -42,7 +33,7 @@ Report.nQuestionnaires = 0;
 
 
 %% ==============================================================
-% Validate Experiment Definition
+% Experiment Definition
 % ==============================================================
 
 if ~isfield(P,'Events')
@@ -62,10 +53,7 @@ end
 % Event Codes
 % ==============================================================
 
-Report = validateEventCodes( ...
-    P, ...
-    Log.Events, ...
-    Report);
+Report = validateEventCodes(P, Log.Events, Report);
 
 
 
@@ -73,10 +61,7 @@ Report = validateEventCodes( ...
 % Rating
 % ==============================================================
 
-Report = validateRatingStructure( ...
-    P, ...
-    Log.Rating, ...
-    Report);
+Report = validateRatingStructure(P, Log.Rating, Report);
 
 
 
@@ -84,10 +69,7 @@ Report = validateRatingStructure( ...
 % Choice
 % ==============================================================
 
-Report = validateChoiceStructure( ...
-    P, ...
-    Log.Choice, ...
-    Report);
+Report = validateChoiceStructure(P, Log.Choice, Report);
 
 
 
@@ -95,15 +77,7 @@ Report = validateChoiceStructure( ...
 % Final Status
 % ==============================================================
 
-if isempty(Report.errors)
-
-    Report.pass = true;
-
-else
-
-    Report.pass = false;
-
-end
+Report.pass = isempty(Report.errors);
 
 
 end
@@ -111,7 +85,7 @@ end
 
 
 %% ==============================================================
-% Event Code Validator
+% Event Code Validation
 % ==============================================================
 
 function Report = validateEventCodes(P, Events, Report)
@@ -122,17 +96,13 @@ validCodes = collectEventCodes(P);
 
 for i = 1:height(Events)
 
-
     if ~ismember(Events.code(i), validCodes)
 
-
-        Report.errors{end+1} = sprintf( ...
+        Report.errors{end+1}=sprintf( ...
             "Unknown event code detected: %d", ...
             Events.code(i));
 
-
     end
-
 
 end
 
@@ -142,7 +112,7 @@ end
 
 
 %% ==============================================================
-% Collect Valid Codes
+% Collect Event Codes
 % ==============================================================
 
 function codes = collectEventCodes(P)
@@ -152,7 +122,6 @@ codes = [
 
     P.Events.Experiment.start
     P.Events.Experiment.end
-
 
     P.Events.Rating.practiceStimulus
     P.Events.Rating.practiceResponse
@@ -183,13 +152,12 @@ codes = [
 
 ];
 
-
 end
 
 
 
 %% ==============================================================
-% Preference Rating Validator
+% Rating Validation
 % ==============================================================
 
 function Report = validateRatingStructure(P, Rating, Report)
@@ -197,10 +165,8 @@ function Report = validateRatingStructure(P, Rating, Report)
 
 if isempty(Rating.trials)
 
-
-    Report.warnings{end+1} = ...
+    Report.warnings{end+1}= ...
         "No Preference Rating trials detected.";
-
 
     return;
 
@@ -212,30 +178,6 @@ Report.nRatingTrials = length(Rating.trials);
 
 
 
-%% Practice
-
-if isempty(Rating.practice.stimulus)
-
-
-    Report.errors{end+1}= ...
-        "Preference Rating practice stimulus missing.";
-
-end
-
-
-
-if isempty(Rating.practice.response)
-
-
-    Report.errors{end+1}= ...
-        "Preference Rating practice response missing.";
-
-end
-
-
-
-%% Trials
-
 for i = 1:length(Rating.trials)
 
 
@@ -244,10 +186,8 @@ for i = 1:length(Rating.trials)
 
     if isempty(trial.stimulus)
 
-
         Report.errors{end+1}=sprintf( ...
             "Rating trial %d missing stimulus.",i);
-
 
     end
 
@@ -255,10 +195,8 @@ for i = 1:length(Rating.trials)
 
     if isempty(trial.response)
 
-
         Report.errors{end+1}=sprintf( ...
             "Rating trial %d missing response.",i);
-
 
     end
 
@@ -266,13 +204,12 @@ for i = 1:length(Rating.trials)
 end
 
 
-
 end
 
 
 
 %% ==============================================================
-% Choice Validator
+% Choice Validation
 % ==============================================================
 
 function Report = validateChoiceStructure(P, Choice, Report)
@@ -280,10 +217,8 @@ function Report = validateChoiceStructure(P, Choice, Report)
 
 if isempty(Choice.blocks)
 
-
     Report.errors{end+1}= ...
         "No Choice blocks detected.";
-
 
     return;
 
@@ -298,7 +233,9 @@ nTrials = 0;
 for b = 1:length(Choice.blocks)
 
 
-    trials = Choice.blocks(b).trials;
+    block = Choice.blocks(b);
+
+    trials = block.trials;
 
 
     nTrials = nTrials + length(trials);
@@ -314,11 +251,8 @@ for b = 1:length(Choice.blocks)
 
         if isempty(trial.fixation)
 
-
             Report.errors{end+1}=sprintf( ...
-                "Choice block %d trial %d missing fixation.", ...
-                b,t);
-
+                "Choice block %d trial %d missing fixation.",b,t);
 
         end
 
@@ -326,23 +260,13 @@ for b = 1:length(Choice.blocks)
 
         if isempty(trial.exposure)
 
-
             Report.errors{end+1}=sprintf( ...
-                "Choice block %d trial %d missing exposure.", ...
-                b,t);
-
+                "Choice block %d trial %d missing exposure.",b,t);
 
         else
 
-
             Report = validateExposure( ...
-                P, ...
-                Choice.blocks(b), ...
-                trial, ...
-                b, ...
-                t, ...
-                Report);
-
+                P, block, trial, b, t, Report);
 
         end
 
@@ -350,11 +274,8 @@ for b = 1:length(Choice.blocks)
 
         if isempty(trial.mask)
 
-
             Report.errors{end+1}=sprintf( ...
-                "Choice block %d trial %d missing mask.", ...
-                b,t);
-
+                "Choice block %d trial %d missing mask.",b,t);
 
         end
 
@@ -362,11 +283,8 @@ for b = 1:length(Choice.blocks)
 
         if isempty(trial.responseOnset)
 
-
             Report.errors{end+1}=sprintf( ...
-                "Choice block %d trial %d missing response onset.", ...
-                b,t);
-
+                "Choice block %d trial %d missing response onset.",b,t);
 
         end
 
@@ -374,14 +292,19 @@ for b = 1:length(Choice.blocks)
 
         if isempty(trial.response)
 
-
             Report.warnings{end+1}=sprintf( ...
-                "Choice block %d trial %d has no response.", ...
-                b,t);
+                "Choice block %d trial %d has no response.",b,t);
 
+        else
+
+            Report = validateTiming( ...
+                trial, b, t, Report);
+
+
+            Report = validateQuestionnaire( ...
+                P, trial, b, t, Report);
 
         end
-
 
 
     end
@@ -399,23 +322,20 @@ end
 
 
 %% ==============================================================
-% Exposure Validator
+% Exposure Validation
 % ==============================================================
 
-function Report = validateExposure(P, block, trial, blockIndex, trialIndex, Report)
+function Report = validateExposure(P, block, trial, b, t, Report)
 
 
-observedCode = trial.exposure.code;
+observed = trial.exposure.code;
 
 
-
-if length(observedCode) ~= 1
+if length(observed) ~= 1
 
 
     Report.errors{end+1}=sprintf( ...
-        "Choice block %d trial %d has invalid exposure count.", ...
-        blockIndex, ...
-        trialIndex);
+        "Choice block %d trial %d invalid exposure count.",b,t);
 
 
     return;
@@ -426,40 +346,133 @@ end
 
 try
 
-
-    expectedCode = getChoiceExposureCode( ...
-        P, ...
-        block);
+    expected = getChoiceExposureCode(P, block);
 
 
 catch
 
-
     Report.errors{end+1}=sprintf( ...
-        "Cannot determine expected exposure for block %d.", ...
-        blockIndex);
-
+        "Cannot determine exposure for block %d.",b);
 
     return;
 
+end
+
+
+
+if observed ~= expected
+
+    Report.errors{end+1}=sprintf( ...
+        "Choice block %d trial %d exposure mismatch. Expected %d got %d.", ...
+        b,t,expected,observed);
+
+end
+
 
 end
 
 
 
-if observedCode ~= expectedCode
+%% ==============================================================
+% Questionnaire Validation
+% ==============================================================
+
+function Report = validateQuestionnaire(P, trial, b, t, Report)
+
+
+q = trial.questionnaire;
+
+
+if isempty(q)
+
+    return;
+
+end
+
+
+
+Report.nQuestionnaires = ...
+    Report.nQuestionnaires + 1;
+
+
+
+if isempty(trial.response)
+
+    Report.errors{end+1}=sprintf( ...
+        "Choice block %d trial %d questionnaire without response.",b,t);
+
+    return;
+
+end
+
+
+
+valid = [
+
+    P.Events.Questionnaire.onset(:)
+    P.Events.Questionnaire.response(:)
+    P.Events.Questionnaire.timeout(:)
+
+];
+
+
+
+for i = 1:length(q.code)
+
+
+    if ~ismember(q.code(i),valid)
+
+        Report.errors{end+1}=sprintf( ...
+            "Invalid questionnaire event block %d trial %d.",b,t);
+
+    end
+
+
+end
+
+
+end
+
+
+
+%% ==============================================================
+% Timing Validation
+% ==============================================================
+
+function Report = validateTiming(trial,b,t,Report)
+
+
+onset = trial.responseOnset.timestamp;
+
+response = trial.response.timestamp;
+
+
+
+if response < onset
 
 
     Report.errors{end+1}=sprintf( ...
-        "Choice block %d trial %d exposure mismatch. Expected %d, got %d.", ...
-        blockIndex, ...
-        trialIndex, ...
-        expectedCode, ...
-        observedCode);
+        "Choice block %d trial %d response before response onset.", ...
+        b,t);
 
 
 end
 
+
+
+RT = response - onset;
+
+
+
+if RT < 0
+
+
+    Report.errors{end+1}=sprintf( ...
+        "Choice block %d trial %d negative reaction time.", ...
+        b,t);
+
+
+end
 
 
 end
