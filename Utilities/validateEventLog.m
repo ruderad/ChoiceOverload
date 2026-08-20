@@ -4,26 +4,18 @@ function Report = validateEventLog(P, Log)
 %
 % Validate a parsed Choice Overload event log.
 %
-% The parser is responsible for reconstruction:
+% Usage:
 %
-%       Log = parseEventLog(filepath)
+% Log = parseEventLog(filepath);
 %
-% The validator checks correctness:
-%
-%       Report = validateEventLog(P, Log)
+% Report = validateEventLog(P, Log);
 %
 %
-% Checks:
-%
-%   - file integrity
-%   - event code validity
-%   - Preference Rating structure
-%   - Choice trial structure
-%
-%
-% Event definitions are always taken from:
+% The validator uses:
 %
 %       P.Events
+%
+% as the source of truth for event definitions.
 
 
 %% ==============================================================
@@ -50,7 +42,7 @@ Report.nQuestionnaires = 0;
 
 
 %% ==============================================================
-% Validate experiment definition
+% Validate Experiment Definition
 % ==============================================================
 
 if ~isfield(P,'Events')
@@ -67,10 +59,10 @@ end
 
 
 %% ==============================================================
-% Event Code Validation
+% Event Codes
 % ==============================================================
 
-validateEventCodes( ...
+Report = validateEventCodes( ...
     P, ...
     Log.Events, ...
     Report);
@@ -78,10 +70,10 @@ validateEventCodes( ...
 
 
 %% ==============================================================
-% Preference Rating Validation
+% Rating
 % ==============================================================
 
-validateRatingStructure( ...
+Report = validateRatingStructure( ...
     P, ...
     Log.Rating, ...
     Report);
@@ -89,10 +81,10 @@ validateRatingStructure( ...
 
 
 %% ==============================================================
-% Choice Validation
+% Choice
 % ==============================================================
 
-validateChoiceStructure( ...
+Report = validateChoiceStructure( ...
     P, ...
     Log.Choice, ...
     Report);
@@ -114,7 +106,6 @@ else
 end
 
 
-
 end
 
 
@@ -123,7 +114,7 @@ end
 % Event Code Validator
 % ==============================================================
 
-function validateEventCodes(P, Events, Report)
+function Report = validateEventCodes(P, Events, Report)
 
 
 validCodes = collectEventCodes(P);
@@ -159,37 +150,36 @@ function codes = collectEventCodes(P)
 
 codes = [
 
-
-P.Events.Experiment.start
-P.Events.Experiment.end
-
-
-P.Events.Rating.practiceStimulus
-P.Events.Rating.practiceResponse
-
-P.Events.Rating.roundStart
-P.Events.Rating.roundEnd
-
-P.Events.Rating.stimulus
-P.Events.Rating.response
+    P.Events.Experiment.start
+    P.Events.Experiment.end
 
 
-P.Events.Choice.blockStart
-P.Events.Choice.blockEnd
+    P.Events.Rating.practiceStimulus
+    P.Events.Rating.practiceResponse
 
-P.Events.Choice.fixation
-P.Events.Choice.mask
+    P.Events.Rating.roundStart
+    P.Events.Rating.roundEnd
 
-P.Events.Choice.responseOnset
-P.Events.Choice.response
-P.Events.Choice.miss
-
-P.Events.Choice.exposure(:)
+    P.Events.Rating.stimulus
+    P.Events.Rating.response
 
 
-P.Events.Questionnaire.onset(:)
-P.Events.Questionnaire.response(:)
-P.Events.Questionnaire.timeout(:)
+    P.Events.Choice.blockStart
+    P.Events.Choice.blockEnd
+
+    P.Events.Choice.fixation
+    P.Events.Choice.mask
+
+    P.Events.Choice.responseOnset
+    P.Events.Choice.response
+    P.Events.Choice.miss
+
+    P.Events.Choice.exposure(:)
+
+
+    P.Events.Questionnaire.onset(:)
+    P.Events.Questionnaire.response(:)
+    P.Events.Questionnaire.timeout(:)
 
 ];
 
@@ -202,7 +192,7 @@ end
 % Preference Rating Validator
 % ==============================================================
 
-function validateRatingStructure(P, Rating, Report)
+function Report = validateRatingStructure(P, Rating, Report)
 
 
 if isempty(Rating.trials)
@@ -214,13 +204,11 @@ if isempty(Rating.trials)
 
     return;
 
-
 end
 
 
 
-Report.nRatingTrials = ...
-    length(Rating.trials);
+Report.nRatingTrials = length(Rating.trials);
 
 
 
@@ -229,9 +217,8 @@ Report.nRatingTrials = ...
 if isempty(Rating.practice.stimulus)
 
 
-    Report.errors{end+1} = ...
+    Report.errors{end+1}= ...
         "Preference Rating practice stimulus missing.";
-
 
 end
 
@@ -240,21 +227,19 @@ end
 if isempty(Rating.practice.response)
 
 
-    Report.errors{end+1} = ...
+    Report.errors{end+1}= ...
         "Preference Rating practice response missing.";
-
 
 end
 
 
 
-%% Main trials
+%% Trials
 
 for i = 1:length(Rating.trials)
 
 
     trial = Rating.trials(i);
-
 
 
     if isempty(trial.stimulus)
@@ -281,6 +266,7 @@ for i = 1:length(Rating.trials)
 end
 
 
+
 end
 
 
@@ -289,7 +275,7 @@ end
 % Choice Validator
 % ==============================================================
 
-function validateChoiceStructure(P, Choice, Report)
+function Report = validateChoiceStructure(P, Choice, Report)
 
 
 if isempty(Choice.blocks)
@@ -300,7 +286,6 @@ if isempty(Choice.blocks)
 
 
     return;
-
 
 end
 
@@ -313,7 +298,6 @@ nTrials = 0;
 for b = 1:length(Choice.blocks)
 
 
-
     trials = Choice.blocks(b).trials;
 
 
@@ -322,7 +306,6 @@ for b = 1:length(Choice.blocks)
 
 
     for t = 1:length(trials)
-
 
 
         trial = trials(t);
@@ -352,7 +335,7 @@ for b = 1:length(Choice.blocks)
         else
 
 
-            validateExposure( ...
+            Report = validateExposure( ...
                 P, ...
                 Choice.blocks(b), ...
                 trial, ...
@@ -413,11 +396,13 @@ Report.nChoiceTrials = nTrials;
 
 end
 
+
+
 %% ==============================================================
 % Exposure Validator
 % ==============================================================
 
-function validateExposure(P, block, trial, blockIndex, trialIndex, Report)
+function Report = validateExposure(P, block, trial, blockIndex, trialIndex, Report)
 
 
 observedCode = trial.exposure.code;
@@ -438,10 +423,6 @@ if length(observedCode) ~= 1
 end
 
 
-
-%% --------------------------------------------------------------
-% Determine expected exposure
-% --------------------------------------------------------------
 
 try
 
@@ -466,10 +447,6 @@ end
 
 
 
-%% --------------------------------------------------------------
-% Compare
-% --------------------------------------------------------------
-
 if observedCode ~= expectedCode
 
 
@@ -482,6 +459,7 @@ if observedCode ~= expectedCode
 
 
 end
+
 
 
 end
