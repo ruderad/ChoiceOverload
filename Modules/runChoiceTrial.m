@@ -191,7 +191,8 @@ sendEvent( ...
 % ---------------------------------------------------------------
 
 WaitSecs( ...
-    P.Choice.fixationDuration);
+    'UntilTime', ...
+    fixationOnset + P.Choice.fixationDuration);
 
 
 %% ==============================================================
@@ -245,7 +246,8 @@ sendEvent( ...
 % ---------------------------------------------------------------
 
 WaitSecs( ...
-    P.Choice.exposureDuration);
+    'UntilTime', ...
+    exposureOnset + P.Choice.exposureDuration);
 
 
 %% ==============================================================
@@ -296,7 +298,8 @@ sendEvent( ...
 % ---------------------------------------------------------------
 
 WaitSecs( ...
-    P.Choice.maskDuration);
+    'UntilTime', ...
+    maskOnset + P.Choice.maskDuration);
 
 
 % %% ==============================================================

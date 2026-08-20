@@ -14,16 +14,33 @@ function [response, RT] = runQuestionnaire( ...
 %       rating scale
 %
 % One response and one RT are collected per question.
+%
+% Questionnaire events are routed through the Choice task because
+% the questionnaire occurs inside successful Choice trials.
+%
+% Event codes are resolved dynamically from:
+%
+%       P.Events.Questionnaire.onset
+%       P.Events.Questionnaire.response
+%       P.Events.Questionnaire.timeout
+%
+% No questionnaire-count or scale-length hardcoding is used.
 
 
 %% ==============================================================
 % Initialize Results
 % ==============================================================
 
-nQuestions = P.Questionnaire.nQuestions;
+nQuestions = ...
+    P.Questionnaire.nQuestions;
 
-response = nan(1, nQuestions);
-RT       = nan(1, nQuestions);
+
+response = ...
+    nan(1, nQuestions);
+
+
+RT = ...
+    nan(1, nQuestions);
 
 
 %% ==============================================================
@@ -31,6 +48,28 @@ RT       = nan(1, nQuestions);
 % ==============================================================
 
 for question = 1:nQuestions
+
+
+    %% ----------------------------------------------------------
+    % Resolve Current Question Events
+    % -----------------------------------------------------------
+
+    QuestionnaireEvent.responseName = sprintf( ...
+        'QUESTIONNAIRE_RESPONSE question=%d', ...
+        question);
+
+
+    QuestionnaireEvent.responseCode = ...
+        P.Events.Questionnaire.response(question);
+
+
+    QuestionnaireEvent.timeoutName = sprintf( ...
+        'QUESTIONNAIRE_TIMEOUT question=%d', ...
+        question);
+
+
+    QuestionnaireEvent.timeoutCode = ...
+        P.Events.Questionnaire.timeout(question);
 
 
     %% ----------------------------------------------------------
@@ -71,17 +110,17 @@ for question = 1:nQuestions
     % %% ----------------------------------------------------------
     % % Reset Cursor
     % % -----------------------------------------------------------
-    % 
+    %
     % % Start every questionnaire question from the center of
     % % the screen so the cursor cannot begin on a response button.
-    % 
+    %
     % mouseStartX = round( ...
     %     mean(T.windowRect([1 3])));
-    % 
+    %
     % mouseStartY = round( ...
     %     mean(T.windowRect([2 4])));
-    % 
-    % 
+    %
+    %
     % SetMouse( ...
     %     mouseStartX, ...
     %     mouseStartY, ...
@@ -92,7 +131,25 @@ for question = 1:nQuestions
     % Question Onset
     % -----------------------------------------------------------
 
-    questionOnset = Screen('Flip', T.window);
+    questionOnset = ...
+        Screen('Flip', T.window);
+
+
+    %% ----------------------------------------------------------
+    % Question Onset Event
+    % -----------------------------------------------------------
+
+    eventName = sprintf( ...
+        'QUESTIONNAIRE_ONSET question=%d', ...
+        question);
+
+
+    sendEvent( ...
+        P, ...
+        T, ...
+        "Choice", ...
+        eventName, ...
+        P.Events.Questionnaire.onset(question));
 
 
     %% ----------------------------------------------------------
@@ -101,12 +158,14 @@ for question = 1:nQuestions
 
     [response(question), RT(question)] = ...
         collectQuestionnaireResponse( ...
-            T.window, ...
+            P, ...
+            T, ...
             responseBuffer, ...
             Layout, ...
             questionOnset, ...
             P.Questionnaire.duration, ...
-            P.Questionnaire.Highlight);
+            P.Questionnaire.Highlight, ...
+            QuestionnaireEvent);
 
 
     %% ----------------------------------------------------------
