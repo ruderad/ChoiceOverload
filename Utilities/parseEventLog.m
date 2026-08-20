@@ -326,7 +326,12 @@ function Choice = parseChoiceEvents(Events)
 
 Choice = struct();
 
-Choice.blocks = struct([]);
+emptyBlock = struct( ...
+    'start', table(), ...
+    'events', table(), ...
+    'trials', struct([]));
+
+Choice.blocks = repmat(emptyBlock,0,1);
 
 
 
@@ -359,7 +364,7 @@ blockStarts = ...
 for b = 1:length(blockStarts)
 
 
-    block = struct();
+    block = emptyBlock;
 
 
     start = ...
@@ -412,54 +417,110 @@ end
 
 function trials = parseChoiceTrials(events)
 
+% Reconstruct Choice trials.
+% Parser only extracts structure.
+% Validation is handled by validateEventLog.m
 
-trials = struct([]);
+
+emptyTrial = struct( ...
+    'events', table(), ...
+    'fixation', table(), ...
+    'exposure', table(), ...
+    'mask', table(), ...
+    'responseOnset', table(), ...
+    'response', table(), ...
+    'questionnaire', table());
+
+
+trials = repmat(emptyTrial,0,1);
+
+
+if isempty(events)
+    return;
+end
 
 
 codes = events.code;
 
 
-
-fixations = ...
-    find(codes == 22);
-
+% Trial starts
+fixations = find(codes == 22);
 
 
 for t = 1:length(fixations)
 
 
-    trial = struct();
+    trial = emptyTrial;
 
 
-    start = ...
-        fixations(t);
-
+    start = fixations(t);
 
 
     if t < length(fixations)
 
-        stop = ...
-            fixations(t+1)-1;
+        stop = fixations(t+1)-1;
 
     else
 
-        stop = ...
-            height(events);
+        stop = height(events);
 
     end
 
 
-
-    trial.events = ...
-        events(start:stop,:);
+    trialEvents = events(start:stop,:);
 
 
+    trial.events = trialEvents;
 
-    trials(t)=trial;
+
+    trialCodes = trialEvents.code;
+
+
+    % Fixation
+    idx = trialCodes == 22;
+
+    trial.fixation = trialEvents(idx,:);
+
+
+    % Exposure
+    % Exposure codes are defined in P.Events.
+    % Keep parser flexible.
+    idx = trialCodes >= 30 & trialCodes <= 99;
+
+    trial.exposure = trialEvents(idx,:);
+
+
+    % Mask
+    idx = trialCodes == 23;
+
+    trial.mask = trialEvents(idx,:);
+
+
+    % Response onset
+    idx = trialCodes == 24;
+
+    trial.responseOnset = trialEvents(idx,:);
+
+
+    % Response or miss
+    idx = trialCodes == 25 | trialCodes == 26;
+
+    trial.response = trialEvents(idx,:);
+
+
+    % Questionnaire events
+    idx = trialCodes >= 100;
+
+    trial.questionnaire = trialEvents(idx,:);
+
+
+    trials(end+1) = trial;
+
+
+end
 
 
 end
 
 
 
-end
