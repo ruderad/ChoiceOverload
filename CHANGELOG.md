@@ -398,3 +398,11 @@ route.
 - perform synchronization testing
 
 
+## V0.3.1 - Validating Acquisition Architecture
+
+### Added
+- mock event logger
+- event log validator
+- automated marker integrity checks
+
+

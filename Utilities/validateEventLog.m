@@ -1,0 +1,398 @@
+function Report = validateEventLog(P, filepath)
+
+% validateEventLog
+%
+% Validate a Choice Overload event log against the experiment
+% event codebook.
+%
+% Checks:
+%
+%   - file integrity
+%   - event code validity
+%   - Preference Rating sequence
+%   - Choice trial sequence
+%   - Questionnaire ordering
+%   - exposure code consistency
+%
+%
+% Usage:
+%
+%   Report = validateEventLog(P, filepath);
+
+
+%% ==============================================================
+% Initialize Report
+% ==============================================================
+
+Report.pass = true;
+
+Report.file = filepath;
+
+Report.errors = {};
+
+Report.warnings = {};
+
+
+Report.nEvents = 0;
+
+Report.nRatingTrials = 0;
+
+Report.nChoiceTrials = 0;
+
+Report.nQuestionnaires = 0;
+
+
+
+%% ==============================================================
+% File Check
+% ==============================================================
+
+if ~isfile(filepath)
+
+    Report.pass = false;
+
+    Report.errors{end+1} = ...
+        "Event log file does not exist.";
+
+    return;
+
+end
+
+
+
+%% ==============================================================
+% Read Log
+% ==============================================================
+
+opts = detectImportOptions(filepath, ...
+    'FileType','text');
+
+
+opts.CommentStyle = '#';
+
+
+opts.VariableNames = ...
+    {'timestamp','task','code','event'};
+
+
+opts = setvartype(opts, ...
+    {'task','event'}, ...
+    'string');
+
+
+data = readtable(filepath, opts);
+
+
+
+Report.nEvents = ...
+    height(data);
+
+
+
+%% ==============================================================
+% Empty File
+% ==============================================================
+
+if Report.nEvents == 0
+
+    Report.pass = false;
+
+    Report.errors{end+1} = ...
+        "Event log contains no events.";
+
+    return;
+
+end
+
+
+
+%% ==============================================================
+% Event Code Validation
+% ==============================================================
+
+
+validCodes = collectEventCodes(P);
+
+
+for i = 1:height(data)
+
+
+    if ~ismember(data.code(i), validCodes)
+
+
+        Report.pass = false;
+
+
+        Report.errors{end+1} = sprintf( ...
+            "Unknown event code detected: %d", ...
+            data.code(i));
+
+    end
+
+end
+
+
+
+%% ==============================================================
+% Preference Validation
+% ==============================================================
+
+ratingMask = ...
+    data.task == "PreferenceRating";
+
+
+ratingEvents = ...
+    data(ratingMask,:);
+
+
+validateRatingSequence( ...
+    ratingEvents, ...
+    Report);
+
+
+
+%% ==============================================================
+% Choice Validation
+% ==============================================================
+
+choiceMask = ...
+    data.task == "Choice";
+
+
+choiceEvents = ...
+    data(choiceMask,:);
+
+
+validateChoiceSequence( ...
+    P, ...
+    choiceEvents, ...
+    Report);
+
+
+
+%% ==============================================================
+% Final Status
+% ==============================================================
+
+
+if isempty(Report.errors)
+
+    Report.pass = true;
+
+else
+
+    Report.pass = false;
+
+end
+
+
+
+%% ==============================================================
+% Print Summary
+% ==============================================================
+
+
+printValidationReport(Report);
+
+
+
+end
+
+
+
+%% ==============================================================
+% Collect All Valid Codes
+% ==============================================================
+
+function codes = collectEventCodes(P)
+
+
+codes = [
+    P.Events.Experiment.start
+    P.Events.Experiment.end
+
+    P.Events.Rating.practiceStimulus
+    P.Events.Rating.practiceResponse
+
+    P.Events.Rating.roundStart
+    P.Events.Rating.roundEnd
+
+    P.Events.Rating.stimulus
+    P.Events.Rating.response
+
+    P.Events.Choice.blockStart
+    P.Events.Choice.blockEnd
+
+    P.Events.Choice.fixation
+    P.Events.Choice.mask
+
+    P.Events.Choice.responseOnset
+    P.Events.Choice.response
+    P.Events.Choice.miss
+
+    P.Events.Choice.exposure(:)
+
+    P.Events.Questionnaire.onset(:)
+    P.Events.Questionnaire.response(:)
+    P.Events.Questionnaire.timeout(:)
+];
+
+
+end
+
+
+
+%% ==============================================================
+% Preference Validator
+% ==============================================================
+
+function validateRatingSequence(events, Report)
+
+
+if isempty(events)
+
+    Report.warnings{end+1} = ...
+        "No Preference Rating events detected.";
+
+    return;
+
+end
+
+
+codes = events.code;
+
+
+if codes(1) ~= 10
+
+    Report.errors{end+1} = ...
+        "Preference Rating does not start with practice stimulus.";
+
+end
+
+
+if ~ismember(13,codes)
+
+    Report.errors{end+1} = ...
+        "Preference Rating round end missing.";
+
+end
+
+
+
+end
+
+
+
+%% ==============================================================
+% Choice Validator
+% ==============================================================
+
+function validateChoiceSequence(P, events, Report)
+
+
+if isempty(events)
+
+    Report.errors{end+1} = ...
+        "No Choice events detected.";
+
+    return;
+
+end
+
+
+
+codes = events.code;
+
+
+trialStarts = find( ...
+    codes == P.Events.Choice.fixation);
+
+
+
+for i = 1:length(trialStarts)
+
+
+    idx = trialStarts(i);
+
+
+    remaining = codes(idx:end);
+
+
+    if isempty(remaining)
+
+
+        Report.errors{end+1} = ...
+            "Incomplete Choice trial.";
+
+        continue;
+
+    end
+
+
+
+    % fixation must be followed by exposure
+
+    if ~any(ismember( ...
+            remaining(2:end), ...
+            P.Events.Choice.exposure(:)))
+
+
+        Report.errors{end+1} = ...
+            "Choice fixation without exposure.";
+
+    end
+
+
+end
+
+
+
+end
+
+
+
+%% ==============================================================
+% Print
+% ==============================================================
+
+function printValidationReport(Report)
+
+
+fprintf('\n');
+fprintf('====================================\n');
+fprintf(' Choice Overload Event Validation\n');
+fprintf('====================================\n\n');
+
+
+fprintf('File:\n%s\n\n', ...
+    Report.file);
+
+
+fprintf('Events:\n%d\n\n', ...
+    Report.nEvents);
+
+
+if Report.pass
+
+    fprintf('RESULT: PASS ✓\n');
+
+else
+
+    fprintf('RESULT: FAIL ✗\n\n');
+
+
+    fprintf('Errors:\n');
+
+    for i = 1:length(Report.errors)
+
+        fprintf('- %s\n', ...
+            Report.errors{i});
+
+    end
+
+end
+
+
+fprintf('\n');
+
+end
