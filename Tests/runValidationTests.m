@@ -1,76 +1,131 @@
 function runValidationTests(P)
 
+fprintf("\n============================\n");
+fprintf("Choice Overload Validation Tests\n");
+fprintf("============================\n\n");
 
-fprintf("\nRunning validation tests...\n\n");
 
 
-%% Test 1
-fprintf("Test 1: Valid log... ");
+%% --------------------------------------------------------------
+% Test 1
+% Valid experiment
+% --------------------------------------------------------------
 
-Log = generateFakeLog(P);
+fprintf("Test 1: Valid log ........ ");
+
+
+file = generateFakeEventLog(P);
+
+
+Log = parseEventLog(file);
+
 
 Report = validateEventLog(P,Log);
 
 
-assert(Report.pass==true);
+
+assert(Report.pass==true,...
+    "Valid log failed validation");
+
 
 fprintf("PASS\n");
 
 
 
-%% Test 2
-fprintf("Test 2: Unknown event code... ");
+
+
+%% --------------------------------------------------------------
+% Test 2
+% Unknown event code
+% --------------------------------------------------------------
+
+fprintf("Test 2: Unknown event .... ");
+
 
 BadLog = Log;
+
 
 BadLog.Events.code(1)=999;
 
 
+
 Report = validateEventLog(P,BadLog);
 
 
-assert(Report.pass==false);
+
+assert(Report.pass==false,...
+    "Unknown event was not detected");
+
 
 fprintf("PASS\n");
 
 
 
-%% Test 3
-fprintf("Test 3: Wrong exposure trigger... ");
+
+
+%% --------------------------------------------------------------
+% Test 3
+% Wrong exposure trigger
+% --------------------------------------------------------------
+
+fprintf("Test 3: Exposure trigger . ");
+
+
 
 BadLog = Log;
+
 
 BadLog.Choice.blocks(1).trials(1).exposure.code = 999;
 
 
+
 Report = validateEventLog(P,BadLog);
 
 
-assert(Report.pass==false);
+
+assert(Report.pass==false,...
+    "Wrong exposure was not detected");
+
 
 fprintf("PASS\n");
 
 
 
-%% Test 4
-fprintf("Test 4: Response before onset... ");
+
+
+%% --------------------------------------------------------------
+% Test 4
+% Response before onset
+% --------------------------------------------------------------
+
+fprintf("Test 4: Timing error ..... ");
+
 
 BadLog = Log;
+
 
 BadLog.Choice.blocks(1).trials(1).response.timestamp = ...
 BadLog.Choice.blocks(1).trials(1).responseOnset.timestamp - 1;
 
 
+
 Report = validateEventLog(P,BadLog);
 
 
-assert(Report.pass==false);
+
+assert(Report.pass==false,...
+    "Timing error was not detected");
+
 
 fprintf("PASS\n");
 
 
 
-fprintf("\nAll validation tests passed.\n\n");
+
+
+fprintf("\n============================\n");
+fprintf("ALL TESTS PASSED\n");
+fprintf("============================\n\n");
 
 
 end

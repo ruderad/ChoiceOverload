@@ -398,11 +398,41 @@ route.
 - perform synchronization testing
 
 
-## V0.3.1 - Validating Acquisition Architecture
+## V0.3.1 - Validation System Implementation
 
 ### Added
-- mock event logger
-- event log validator
-- automated marker integrity checks
+
+- Added experiment validation framework for Choice Overload EEG/Eyetracking experiments.
+- Implemented structured event parsing through `parseEventLog.m`.
+- Refactored validator architecture to operate on parsed experiment objects instead of raw TSV files.
+- Added validation reporting through `validateEventLog.m`.
+
+### Validation Features
+
+- Added event code integrity validation using `P.Events` as the single source of truth.
+- Added Preference Rating trial validation.
+- Added Choice trial structure validation.
+- Added EEG exposure trigger validation using:
+  - set size
+  - experimental condition
+  - expected trigger mapping
+- Added questionnaire event validation.
+- Added response timing validation.
+
+### Testing
+
+- Added automated validation test framework.
+- Added synthetic log generation for validator testing.
+- Added PASS/FAIL tests for:
+  - valid experiment execution
+  - invalid event codes
+  - incorrect exposure triggers
+  - invalid response timing
+
+### Architecture Improvements
+
+- Separated event reconstruction from validation logic.
+- Parser is now responsible for determining what happened.
+- Validator is responsible for determining whether execution was correct.
 
 
