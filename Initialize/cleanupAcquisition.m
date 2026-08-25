@@ -3,6 +3,12 @@ function T = cleanupAcquisition(P, T)
 % cleanupAcquisition
 %
 % Safely shut down acquisition infrastructure.
+%
+% Components:
+%
+%   Event Logger
+%   Eye Tracker
+%   EEG
 
 
 if nargin < 2 || isempty(T)
@@ -20,20 +26,6 @@ end
 
 
 %% ==============================================================
-% Event Logger
-% ==============================================================
-
-if isfield(T.Acquisition,'EventLog') && ...
-        T.Acquisition.EventLog.active
-
-    eventLogger("close");
-
-    T.Acquisition.EventLog.active = false;
-
-end
-
-
-%% ==============================================================
 % Debug Mode
 % ==============================================================
 
@@ -44,20 +36,25 @@ if P.Debug.enabled
 end
 
 
+
 %% ==============================================================
 % Eye Tracker
 % ==============================================================
 
 if isfield(T.Acquisition,'EyeTracker') && ...
-        T.Acquisition.EyeTracker.active
+        isstruct(T.Acquisition.EyeTracker) && ...
+        isfield(T.Acquisition.EyeTracker,'connected') && ...
+        T.Acquisition.EyeTracker.connected
 
 
-    % Future cleanup here
+    T.Acquisition.EyeTracker = ...
+        cleanupEyeTracker( ...
+            T.Acquisition.EyeTracker, ...
+            P);
 
-
-    T.Acquisition.EyeTracker.active = false;
 
 end
+
 
 
 %% ==============================================================
@@ -65,6 +62,8 @@ end
 % ==============================================================
 
 if isfield(T.Acquisition,'EEG') && ...
+        isstruct(T.Acquisition.EEG) && ...
+        isfield(T.Acquisition.EEG,'active') && ...
         T.Acquisition.EEG.active
 
 
@@ -75,6 +74,21 @@ if isfield(T.Acquisition,'EEG') && ...
 
     T.Acquisition.EEG.active = false;
 
+
+end
+
+
+
+%% ==============================================================
+% Event Logger
+% ==============================================================
+
+if isfield(T.Acquisition,'EventLog') && ...
+        T.Acquisition.EventLog.active
+
+    eventLogger("close");
+
+    T.Acquisition.EventLog.active = false;
 
 end
 

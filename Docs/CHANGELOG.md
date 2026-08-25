@@ -459,6 +459,59 @@ route.
 - Parser is now responsible for determining what happened.
 - Validator is responsible for determining whether execution was correct.
 
+## [Unreleased]
+
+### Added
+
+- Implemented EyeLink acquisition backend structure.
+- Added modular EyeLink acquisition functions:
+  - `initializeEyeTracker`
+  - `calibrateEyeTracker`
+  - `startEyeTrackingRecording`
+  - `sendEyeTrackerEvent`
+  - `cleanupEyeTracker`
+- Added EyeLink lifecycle management:
+  - connection initialization
+  - tracker configuration
+  - EDF file creation
+  - calibration handling
+  - recording control
+  - cleanup and EDF transfer preparation.
+- Integrated EyeLink initialization into the acquisition framework.
+- Added separate calibration and recording stages to preserve acquisition state clarity.
+
+### Changed
+
+- Updated acquisition architecture to support multiple hardware systems:
+  - EEG
+  - Eye tracking
+  - Event logging
+- Extended acquisition initialization and cleanup logic to include EyeLink handling.
+- Updated acquisition flow to initialize EyeLink after Psychtoolbox window creation.
+- Reserved acquisition synchronization handling through the centralized event system.
+
+### Design Decisions
+
+- EyeLink calibration is separated from initialization because calibration is an interactive experimental procedure.
+- EyeLink events are routed through the acquisition event system rather than being sent directly from task code.
+- EDF file management is handled by the acquisition layer instead of the behavioral task.
+
+### Validation
+
+- Verified that Psychtoolbox EyeLink toolbox functions are available.
+- Added standalone EyeLink smoke-test framework for:
+  - initialization
+  - calibration
+  - recording
+  - message transmission
+  - cleanup
+
+### Pending Validation
+
+- Validate EyeLink hardware communication.
+- Verify EDF file creation and message recording.
+- Validate synchronization between EEG markers, EyeLink messages, and behavioral event logs.
+
 
 
 

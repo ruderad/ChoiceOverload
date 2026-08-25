@@ -55,7 +55,7 @@ T.Acquisition.EEG.active = false;
 T.Acquisition.EyeTracker.requested = ...
     P.Acquisition.EyeTracker.enabled;
 
-T.Acquisition.EyeTracker.active = false;
+
 
 
 %% ==============================================================
@@ -105,9 +105,13 @@ end
 
 if T.Acquisition.EyeTracker.requested
 
-    error( ...
-        ['Eye-tracker acquisition is enabled, but the ' ...
-         'hardware integration has not been implemented yet.']);
+
+    T.Acquisition.EyeTracker = ...
+        initializeEyeTracker( ...
+            P, ...
+            T, ...
+            Subject);
+
 
 end
 

@@ -1,16 +1,18 @@
-function sendEyeTrackerEvent(eventName)
+function sendEyeTrackerEvent(EyeTracker,eventName)
 
 % sendEyeTrackerEvent
 %
-% Hardware-independent eye tracker event interface.
-%
-% Future implementation:
-%
-%   EyeLink messages
-%   Tobii markers
-%   calibration events
+% Send event message to EDF file.
 
 
-% Placeholder only.
+if ~EyeTracker.recording
+
+    return;
+
+end
+
+
+Eyelink('Message',char(eventName));
+
 
 end

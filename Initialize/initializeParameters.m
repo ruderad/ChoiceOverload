@@ -464,7 +464,11 @@ P.Events.Questionnaire.timeout = ...
     questionStartCode + ...
     2 * nQuestions + ...
     (0:nQuestions - 1);
+%% ==============================================================
+% EEG/ET Sync
+% ==============================================================
 
+P.Events.Acquisition.sync = 55;
 
 %% ==============================================================
 % Validate Event-Code Range
