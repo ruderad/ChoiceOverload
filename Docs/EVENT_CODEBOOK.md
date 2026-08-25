@@ -5,7 +5,7 @@
 Experiment version:
 
 ```text
-v0.3.0
+v0.4.0
 ```
 
 Event-codebook version:
@@ -52,9 +52,10 @@ Two forms of event information are used:
 - `eventCode` — numeric trigger sent to EEG hardware
 - `eventName` — descriptive event message sent to systems such as eye tracking
 
-Task routing currently supports:
+Task routing supports:
 
 ```text
+Acquisition
 PreferenceRating
 Choice
 ```
@@ -116,9 +117,7 @@ The experiment validates:
 | 1 | Experiment Start |
 | 2 | Experiment End |
 
-These codes are reserved.
-
-They are not currently emitted by the behavioral task.
+These codes are reserved. The current task flow does not emit them.
 
 
 ---
@@ -571,3 +570,13 @@ P.Events.version = 1.1
 ```
 
 Any future change to the meaning or numeric value of an event marker should increment the event-codebook version and update this document accordingly.
+
+---
+
+# Backend Behavior
+
+- The event logger can remain active in debug mode.
+- EEG receives numeric codes when its task route is enabled and the serial backend is active.
+- EyeLink receives descriptive event names when its task route is enabled and recording is active.
+- Code `55` is routed through the `Acquisition` task after EyeLink recording starts.
+- Each participant result stores the exact `P.Events` structure used for the session.
