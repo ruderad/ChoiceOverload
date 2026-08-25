@@ -13,7 +13,16 @@ if ~EyeTracker.calibrated
 end
 
 
-Eyelink('StartRecording');
+status = Eyelink('StartRecording');
+
+
+if status ~= 0
+
+    error( ...
+        'EyeLink failed to start recording (status %d).', ...
+        status);
+
+end
 
 
 WaitSecs(0.05);
