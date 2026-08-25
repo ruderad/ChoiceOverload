@@ -1,291 +1,84 @@
-# Choice Overload Validation System Documentation
+# Choice Overload Validation System
 
-## Overview
+Version: **0.4.0**
 
-The validation system was built to verify that the recorded experiment
-execution matches the expected Choice Overload experiment behavior.
+## Purpose
 
-The system does not validate the experiment source code itself. It
-validates the output produced by the experiment:
+The validation system checks whether a recorded event log matches the expected experiment sequence. It detects incomplete, corrupted, or inconsistent sessions before behavioral, EEG, or eye-tracking analysis.
 
-    Event Log
-        |
-        v
-    parseEventLog()
-        |
-        v
-    Structured Log Object
-        |
-        v
-    validateEventLog()
-        |
-        v
-    Validation Report
+It validates recorded output. It does not prove that hardware timestamps are synchronized.
 
-The main purpose is to detect corrupted, incomplete, or inconsistent
-experiment recordings before EEG/behavioral analysis.
+## Workflow
 
-------------------------------------------------------------------------
-
-# Architecture
-
-## 1. Event Parsing Layer
-
-Function:
-
-    parseEventLog.m
-
-Responsibilities:
-
--   Read raw event logs.
--   Extract metadata.
--   Convert raw events into structured experiment objects.
--   Reconstruct:
-
-```{=html}
-<!-- -->
+```matlab
+Log = parseEventLog(logPath);
+Report = validateEventLog(P, Log);
 ```
-    Log
-     |
-     +-- Metadata
-     |
-     +-- Events
-     |
-     +-- Rating
-     |
-     +-- Choice
-          |
-          +-- Blocks
-               |
-               +-- Trials
 
-Choice trials now contain:
+`P.Events` is the only source of expected event codes.
 
--   fixation event
--   exposure event
--   mask event
--   response onset
--   response/miss
--   questionnaire events
--   set size
--   condition
+## Parser
 
-The trial-level metadata allows validation of stimulus trigger
-correctness.
+`Utilities/parseEventLog.m` reads a TSV event log and reconstructs:
 
-------------------------------------------------------------------------
+- session metadata;
+- raw events;
+- preference-rating trials;
+- choice blocks and trials;
+- set size and condition for each choice trial;
+- questionnaire events.
 
-# 2. Validation Layer
+The parser determines what happened. It does not decide whether the session is valid.
 
-Function:
+## Validator
 
-    validateEventLog.m
+`Utilities/validateEventLog.m` evaluates the parsed structure and returns a report.
 
-Input:
+Checks include:
 
-    Report = validateEventLog(P, Log)
+- unknown or invalid event codes;
+- missing rating stimuli or responses;
+- missing choice fixation, exposure, mask, response-onset, or response events;
+- exposure-code mismatch for the recorded set size and condition;
+- invalid questionnaire codes or trial associations;
+- impossible or invalid response timing.
 
-The validator uses:
+Exposure validation resolves the expected code through `getChoiceExposureCode`.
 
-    P.Events
+## Event-log operation
 
-as the single source of truth for event definitions.
+The event logger is independent of the hardware bypass. Set:
 
-------------------------------------------------------------------------
+```matlab
+P.Debug.enabled = true;
+P.Acquisition.EventLog.enabled = true;
+```
 
-# Implemented Validation Checks
+to exercise event routing without opening EEG or EyeLink hardware. Logs are written to the configured `Logs/` directory and closed during normal or emergency cleanup.
 
-## Event Integrity
+## Automated tests
 
-Checks:
+Run:
 
--   Unknown event codes.
--   Invalid events that are not defined in the experiment parameters.
+```matlab
+addpath(genpath(pwd));
+runValidationTests;
+testAcquisitionContracts;
+```
 
-------------------------------------------------------------------------
+`runValidationTests` generates synthetic logs and covers valid execution, unknown codes, incorrect exposure triggers, and invalid timing.
 
-## Preference Rating Validation
+`testAcquisitionContracts` checks debug-mode acquisition state, synchronization-event logging, logger cleanup, and idempotent state transitions without hardware.
 
-Checks:
+`minimalTriggerTest` is a separate EEG hardware test.
 
--   Missing stimulus events.
--   Missing responses.
--   Trial structural integrity.
+## Interpretation
 
-------------------------------------------------------------------------
+A passing validation report means that the logged sequence is internally consistent with `P.Events` and the validator rules. It does not confirm:
 
-## Choice Trial Validation
+- EEG electrical pulse timing;
+- EyeLink connection or sample recording;
+- successful EDF transfer;
+- clock alignment between behavioral, EEG, and EyeLink systems.
 
-Checks:
-
--   Fixation exists.
--   Exposure exists.
--   Mask exists.
--   Response onset exists.
--   Response exists.
-
-------------------------------------------------------------------------
-
-## Exposure Trigger Validation
-
-Checks that:
-
-    setSize + condition
-              |
-              v
-    Expected EEG event code
-
-matches:
-
-    Observed exposure trigger
-
-using:
-
-    getChoiceExposureCode()
-
-This ensures EEG triggers represent the intended experimental condition.
-
-------------------------------------------------------------------------
-
-## Questionnaire Validation
-
-Checks:
-
--   Questionnaire events use valid event codes.
--   Questionnaire events are associated with valid trials.
-
-------------------------------------------------------------------------
-
-## Timing Validation
-
-Checks:
-
--   Response does not occur before response onset.
--   Reaction time is not negative.
-
-------------------------------------------------------------------------
-
-# Automated Testing Framework
-
-Folder:
-
-    Tests/
-
-Purpose:
-
-Prevent future changes from silently breaking validation.
-
-Testing workflow:
-
-    generateFakeLog()
-            |
-            v
-    parseEventLog()
-            |
-            v
-    validateEventLog()
-            |
-            v
-    PASS / FAIL
-
-The test suite creates:
-
--   valid experiment logs
--   intentionally corrupted logs
-
-and confirms that:
-
--   valid logs pass
--   invalid logs fail
-
-Example corruption tests:
-
--   unknown event code
--   incorrect exposure trigger
--   invalid timing order
-
-------------------------------------------------------------------------
-
-# Development Milestones
-
-## Commit 1
-
-Refactored validator to consume parsed logs instead of reading TSV files
-directly.
-
-## Commit 2
-
-Migrated Preference Rating validation to structured objects.
-
-## Commit 3
-
-Migrated Choice validation to structured block/trial objects.
-
-## Commit 4
-
-Removed duplicated event assumptions and moved event definitions to
-`P.Events`.
-
-## Commit 5
-
-Added exposure validation.
-
-## Commit 6
-
-Fixed report propagation and improved validator reliability.
-
-## Commit 7-8
-
-Added questionnaire and timing validation.
-
-## Commit 9+
-
-Added automated PASS/FAIL testing infrastructure.
-
-------------------------------------------------------------------------
-
-# Design Principles
-
-## Separation of Responsibilities
-
-Parser:
-
-    What happened?
-
-Validator:
-
-    Was what happened correct?
-
-Experiment parameters:
-
-    What was expected?
-
-------------------------------------------------------------------------
-
-## Avoid Duplicate Experiment Logic
-
-The validator should not recreate experiment generation logic.
-
-It should only compare:
-
-Expected:
-
-    P
-
-against:
-
-Observed:
-
-    Log
-
-------------------------------------------------------------------------
-
-# Future Improvements
-
-Possible future additions:
-
--   GitHub Actions automated validation.
--   More extensive synthetic log generation.
--   EEG trigger synchronization validation.
--   Eye-tracking event validation.
--   Statistical completeness checks.
+Complete release qualification therefore requires both automated log validation and an on-hardware synchronization run.
