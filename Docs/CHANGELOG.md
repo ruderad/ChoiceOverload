@@ -459,7 +459,7 @@ route.
 - Parser is now responsible for determining what happened.
 - Validator is responsible for determining whether execution was correct.
 
-## [Unreleased]
+## V0.4.0 - EyeLink Integration and Acquisition Hardening
 
 ### Added
 
@@ -506,12 +506,36 @@ route.
   - message transmission
   - cleanup
 
-### Pending Validation
+### Fixed
 
-- Validate EyeLink hardware communication.
-- Verify EDF file creation and message recording.
-- Validate synchronization between EEG markers, EyeLink messages, and behavioral event logs.
+- Aligned acquisition routing with the current EEG and EyeLink state contracts.
+- Normalized subject IDs and limited EyeLink EDF stems to eight valid characters.
+- Transferred EDF files to the canonical `Data/` results directory.
+- Made acquisition initialization transactional: later backend failures now clean up earlier backends.
+- Made cleanup defensive and idempotent for partial initialization and debug runs.
+- Ensured the event logger closes during normal completion and error handling.
+- Checked EyeLink recording startup and preserved the cleaned acquisition state.
+- Added acquisition synchronization code `55` to codebook validation.
+
+### Testing
+
+- Added `Tests/testAcquisitionContracts.m`, a hardware-free regression test for debug state, event logging, synchronization routing, and cleanup.
+- Kept the existing validation and serial-trigger tests.
+- Reviewed and merged the acquisition-consistency changes in pull request #1.
+
+### Release Validation Status
+
+- EEG serial trigger transmission: validated with hardware.
+- Behavioral event logging and validation: covered by automated tests.
+- Acquisition state and debug cleanup: covered by a hardware-free contract test.
+- EyeLink toolbox availability: verified.
+- EyeLink hardware communication, EDF recording/transfer, and cross-device synchronization: still require an on-hardware run.
 
 
 
 
+
+
+## [Unreleased]
+
+No changes yet.
