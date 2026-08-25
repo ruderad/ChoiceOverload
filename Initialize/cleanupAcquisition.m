@@ -1,34 +1,18 @@
-function cleanupAcquisition(P, T)
+function T = cleanupAcquisition(P, T)
 
 % cleanupAcquisition
 %
 % Safely shut down acquisition infrastructure.
-%
-% Safe to call:
-%
-%   in debug mode
-%   before acquisition initializes
-%   after partial initialization
-%   from the experiment error handler
 
 
-%% ==============================================================
-% Nothing to Clean
-% ==============================================================
-
-if nargin < 2 || ...
-        isempty(T)
+if nargin < 2 || isempty(T)
 
     return;
 
 end
 
 
-%% ==============================================================
-% Acquisition Initialized?
-% ==============================================================
-
-if ~isfield(T, 'Acquisition')
+if ~isfield(T,'Acquisition')
 
     return;
 
@@ -39,14 +23,12 @@ end
 % Event Logger
 % ==============================================================
 
-% The logger may be active even when Debug mode is enabled,
-% therefore it must be cleaned before the Debug return.
-
-if isfield(T.Acquisition, 'EventLog') && ...
+if isfield(T.Acquisition,'EventLog') && ...
         T.Acquisition.EventLog.active
 
-    eventLogger( ...
-        "close");
+    eventLogger("close");
+
+    T.Acquisition.EventLog.active = false;
 
 end
 
@@ -66,17 +48,14 @@ end
 % Eye Tracker
 % ==============================================================
 
-if isfield(T.Acquisition, 'EyeTracker') && ...
+if isfield(T.Acquisition,'EyeTracker') && ...
         T.Acquisition.EyeTracker.active
 
-    % ----------------------------------------------------------
-    % Future cleanup:
-    %
-    %   stop recording
-    %   close file
-    %   transfer data
-    %   disconnect
-    % ----------------------------------------------------------
+
+    % Future cleanup here
+
+
+    T.Acquisition.EyeTracker.active = false;
 
 end
 
@@ -85,15 +64,14 @@ end
 % EEG
 % ==============================================================
 
-if isfield(T.Acquisition, 'EEG') && ...
+if isfield(T.Acquisition,'EEG') && ...
         T.Acquisition.EEG.active
 
-    % ----------------------------------------------------------
-    % Future cleanup:
-    %
-    %   stop/reset trigger interface
-    %   disconnect
-    % ----------------------------------------------------------
+
+    % Future cleanup here
+
+
+    T.Acquisition.EEG.active = false;
 
 end
 

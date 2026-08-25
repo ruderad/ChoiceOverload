@@ -16,17 +16,11 @@ function T = initializeAcquisition(P, T, Subject)
 %   Event Logger -> may remain active
 %   EEG          -> bypassed
 %   Eye Tracker  -> bypassed
-%
-%
-% The event logger is intentionally independent of Debug mode so
-% marker sequences can be validated without hardware.
 
 
 %% ==============================================================
 % Acquisition State
 % ==============================================================
-
-% Hardware acquisition state.
 
 T.Acquisition.enabled = ...
     ~P.Debug.enabled;
@@ -39,13 +33,9 @@ T.Acquisition.enabled = ...
 T.Acquisition.EventLog.requested = ...
     P.Acquisition.EventLog.enabled;
 
+T.Acquisition.EventLog.active = false;
 
-T.Acquisition.EventLog.active = ...
-    false;
-
-
-T.Acquisition.EventLog.filepath = ...
-    '';
+T.Acquisition.EventLog.filepath = '';
 
 
 %% ==============================================================
@@ -55,9 +45,7 @@ T.Acquisition.EventLog.filepath = ...
 T.Acquisition.EEG.requested = ...
     P.Acquisition.EEG.enabled;
 
-
-T.Acquisition.EEG.active = ...
-    false;
+T.Acquisition.EEG.active = false;
 
 
 %% ==============================================================
@@ -67,9 +55,7 @@ T.Acquisition.EEG.active = ...
 T.Acquisition.EyeTracker.requested = ...
     P.Acquisition.EyeTracker.enabled;
 
-
-T.Acquisition.EyeTracker.active = ...
-    false;
+T.Acquisition.EyeTracker.active = false;
 
 
 %% ==============================================================
@@ -79,8 +65,15 @@ T.Acquisition.EyeTracker.active = ...
 if P.Debug.enabled
 
 
-    % Hardware is bypassed, but the mock/event logger may still
-    % operate so the complete event sequence can be inspected.
+    if T.Acquisition.EEG.requested || ...
+            T.Acquisition.EyeTracker.requested
+
+        warning( ...
+            ['Debug mode enabled. Hardware acquisition is ' ...
+             'requested but bypassed.']);
+
+    end
+
 
     T = startEventLogger( ...
         P, ...
@@ -97,19 +90,7 @@ end
 % EEG
 % ==============================================================
 
-if P.Acquisition.EEG.enabled
-
-    % ----------------------------------------------------------
-    % Future EEG initialization:
-    %
-    %   connect to trigger interface
-    %   validate connection
-    %   prepare recording / trigger system
-    %
-    % After successful initialization:
-    %
-    %   T.Acquisition.EEG.active = true;
-    % ----------------------------------------------------------
+if T.Acquisition.EEG.requested
 
     error( ...
         ['EEG acquisition is enabled, but the EEG hardware ' ...
@@ -122,20 +103,7 @@ end
 % Eye Tracker
 % ==============================================================
 
-if P.Acquisition.EyeTracker.enabled
-
-    % ----------------------------------------------------------
-    % Future eye-tracker initialization:
-    %
-    %   connect
-    %   create recording
-    %   calibration
-    %   validation
-    %
-    % After successful initialization:
-    %
-    %   T.Acquisition.EyeTracker.active = true;
-    % ----------------------------------------------------------
+if T.Acquisition.EyeTracker.requested
 
     error( ...
         ['Eye-tracker acquisition is enabled, but the ' ...
@@ -147,12 +115,6 @@ end
 %% ==============================================================
 % Event Logger
 % ==============================================================
-
-% In real acquisition mode, start the event logger only after
-% hardware initialization has completed successfully.
-%
-% This avoids leaving an open log resource after a partial
-% hardware-initialization failure.
 
 T = startEventLogger( ...
     P, ...
@@ -183,12 +145,9 @@ filePath = eventLogger( ...
     Subject);
 
 
-T.Acquisition.EventLog.filepath = ...
-    filePath;
+T.Acquisition.EventLog.filepath = filePath;
 
-
-T.Acquisition.EventLog.active = ...
-    true;
+T.Acquisition.EventLog.active = true;
 
 
 end
