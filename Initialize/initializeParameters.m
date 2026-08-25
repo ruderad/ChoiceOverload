@@ -5,7 +5,7 @@ function P = initializeParameters(root)
 %  ==============================================================
 
 P.Experiment.name    = 'Choice Overload';
-P.Experiment.version = '0.3.0';
+P.Experiment.version = '0.4.0';
 P.Experiment.date    = datestr(now,'yyyy-mm-dd');
 
 % Root directory of the experiment
