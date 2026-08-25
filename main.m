@@ -55,7 +55,9 @@ try
 
     %% Eye tracker calibration
 
-    if T.Acquisition.EyeTracker.requested
+    if ~P.Debug.enabled && ...
+            T.Acquisition.EyeTracker.requested && ...
+            T.Acquisition.EyeTracker.connected
 
         T.Acquisition.EyeTracker = ...
             calibrateEyeTracker( ...
@@ -133,7 +135,7 @@ try
 
     saveResults( ...
         R, ...
-        root);
+        P.Results.path);
 
 
 catch ME
