@@ -75,7 +75,7 @@ if useEEG
 
     try
 
-        sendEEGEvent(eventCode);
+        sendEEGEvent(T.Acquisition.EEG, eventCode);
 
     catch ME
 

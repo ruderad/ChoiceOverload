@@ -68,10 +68,13 @@ if isfield(T.Acquisition,'EEG') && ...
         T.Acquisition.EEG.active
 
 
-    % Future cleanup here
+    fclose(T.Acquisition.EEG.serial);
+
+    delete(T.Acquisition.EEG.serial);
 
 
     T.Acquisition.EEG.active = false;
+
 
 end
 

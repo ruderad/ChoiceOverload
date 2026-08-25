@@ -92,9 +92,9 @@ end
 
 if T.Acquisition.EEG.requested
 
-    error( ...
-        ['EEG acquisition is enabled, but the EEG hardware ' ...
-         'integration has not been implemented yet.']);
+
+    T.Acquisition.EEG = initializeEEG(P);
+
 
 end
 

@@ -51,6 +51,11 @@ P.Acquisition.EventLog.folder = ...
 % Is the EEG hardware part of this experiment setup?
 P.Acquisition.EEG.enabled = true;
 
+P.Acquisition.EEG.port = '/dev/ttyUSB0';
+
+P.Acquisition.EEG.BaudRate = 57600;
+P.Acquisition.EEG.DataBits = 8;
+
 % Which tasks should use EEG?
 P.Acquisition.EEG.PreferenceRating = false;
 P.Acquisition.EEG.Choice           = true;
@@ -336,7 +341,7 @@ end
 % Increment this if the meaning or numbering of event codes
 % changes in a future experiment version.
 
-P.Events.version = '1.0';
+P.Events.version = '1.1';
 
 
 %% ==============================================================

@@ -1,17 +1,40 @@
-function sendEEGEvent(eventCode)
+function sendEEGEvent(EEG,eventCode)
 
 % sendEEGEvent
 %
-% Hardware-independent EEG event interface.
+% Send one EEG marker.
 %
-% Future implementation:
+% Trigger protocol:
 %
-%   trigger box
-%   parallel port
-%   Lab Streaming Layer
-%   amplifier SDK
+%   single byte serial trigger
+%
+% Valid range:
+%
+%   1-63
 
 
-% Placeholder only.
+%% --------------------------------------------------------------
+% Validate trigger
+% ---------------------------------------------------------------
+
+eventCode = double(eventCode);
+
+
+if eventCode < 1 || eventCode > 63
+
+    error( ...
+        'EEG trigger code must be between 1 and 63.');
+
+end
+
+
+%% --------------------------------------------------------------
+% Send trigger
+% ---------------------------------------------------------------
+
+fwrite( ...
+    EEG.serial, ...
+    eventCode);
+
 
 end
