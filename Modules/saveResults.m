@@ -1,21 +1,21 @@
-function saveResults(R, root)
+function saveResults(R, resultsPath)
 % saveResults
 %
 % Saves the complete results structure for one participant.
 %
 % INPUT
 %   R       - Results structure
-%   root    - Experiment root directory
+%   resultsPath - Canonical results directory
 %
 % Results are saved as:
 %
-%   <root>/data/<SubjectID>.mat
+%   <resultsPath>/<SubjectID>.mat
 %
 % -------------------------------------------------------------------------
 
 %% Data directory
 
-dataDir = fullfile(root, 'data');
+dataDir = resultsPath;
 
 if ~exist(dataDir, 'dir')
     mkdir(dataDir);

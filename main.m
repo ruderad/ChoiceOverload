@@ -55,7 +55,9 @@ try
 
     %% Eye tracker calibration
 
-    if T.Acquisition.EyeTracker.requested
+    if ~P.Debug.enabled && ...
+            T.Acquisition.EyeTracker.requested && ...
+            T.Acquisition.EyeTracker.connected
 
         T.Acquisition.EyeTracker = ...
             calibrateEyeTracker( ...
@@ -121,7 +123,7 @@ try
 
     %% Cleanup Acquisition
 
-    cleanupAcquisition(P, T);
+    T = cleanupAcquisition(P, T);
 
 
     %% Cleanup Psychtoolbox
@@ -133,7 +135,7 @@ try
 
     saveResults( ...
         R, ...
-        root);
+        P.Results.path);
 
 
 catch ME

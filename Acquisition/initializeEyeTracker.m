@@ -150,8 +150,24 @@ Eyelink('Command', ...
 % EDF file
 % ==============================================================
 
+subjectID = ...
+    upper(char(string(Subject.ID)));
+
+subjectID = ...
+    regexprep(strtrim(subjectID), '[^A-Z0-9]', '');
+
+if isempty(subjectID)
+
+    subjectID = 'UNKNOWN';
+
+end
+
+% EyeLink host filenames use an eight-character EDF stem.
+edfStem = ...
+    subjectID(1:min(8, numel(subjectID)));
+
 edfFile = ...
-    sprintf('%s_ET.edf', Subject.id);
+    sprintf('%s.edf', edfStem);
 
 
 status = Eyelink('OpenFile',edfFile);

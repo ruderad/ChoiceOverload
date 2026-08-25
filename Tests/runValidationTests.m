@@ -123,6 +123,18 @@ fprintf("PASS\n");
 
 
 
+%% --------------------------------------------------------------
+% Test 5
+% Acquisition state and debug cleanup
+% --------------------------------------------------------------
+
+fprintf("Test 5: Acquisition state  ");
+
+testAcquisitionContracts();
+
+fprintf("PASS\n");
+
+
 fprintf("\n============================\n");
 fprintf("ALL TESTS PASSED\n");
 fprintf("============================\n\n");

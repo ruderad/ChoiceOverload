@@ -11,6 +11,9 @@ P.Experiment.date    = datestr(now,'yyyy-mm-dd');
 % Root directory of the experiment
 P.Experiment.root = root;
 
+% Canonical directory for behavioral and acquisition output.
+P.Results.path = fullfile(P.Experiment.root, 'Data');
+
 %% ==============================================================
 %  Debug
 %  ==============================================================
@@ -57,6 +60,7 @@ P.Acquisition.EEG.BaudRate = 57600;
 P.Acquisition.EEG.DataBits = 8;
 
 % Which tasks should use EEG?
+P.Acquisition.EEG.Acquisition      = true;
 P.Acquisition.EEG.PreferenceRating = false;
 P.Acquisition.EEG.Choice           = true;
 
@@ -67,6 +71,7 @@ P.Acquisition.EEG.Choice           = true;
 P.Acquisition.EyeTracker.enabled = true;
 
 % Which tasks should use eye tracking?
+P.Acquisition.EyeTracker.Acquisition      = true;
 P.Acquisition.EyeTracker.PreferenceRating = true;
 P.Acquisition.EyeTracker.Choice           = true;
 
@@ -493,13 +498,14 @@ allEventCodes = [ ...
     P.Events.Choice.exposure(:)', ...
     P.Events.Questionnaire.onset, ...
     P.Events.Questionnaire.response, ...
-    P.Events.Questionnaire.timeout];
+    P.Events.Questionnaire.timeout, ...
+    P.Events.Acquisition.sync];
 
 
-if max(allEventCodes) > 255
+if max(allEventCodes) > 63
 
     error( ...
-        ['Event codebook exceeds the 8-bit trigger range ' ...
+        ['Event codebook exceeds the configured EEG trigger range ' ...
          '(maximum code = %d).'], ...
         max(allEventCodes));
 

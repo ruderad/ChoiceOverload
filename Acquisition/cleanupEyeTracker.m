@@ -16,13 +16,16 @@ end
 % Stop recording
 % ==============================================================
 
-if EyeTracker.recording
+if isfield(EyeTracker,'recording') && ...
+        EyeTracker.recording
+
+    Eyelink('StopRecording');
+
+    EyeTracker.recording = false;
 
     Eyelink('SetOfflineMode');
 
     WaitSecs(0.5);
-
-    Eyelink('StopRecording');
 
 end
 
@@ -32,9 +35,17 @@ end
 % Close EDF
 % ==============================================================
 
-if isfield(EyeTracker,'edfFile')
+if isfield(EyeTracker,'edfFile') && ...
+        ~isempty(EyeTracker.edfFile)
 
     Eyelink('CloseFile');
+
+
+    if ~isfolder(P.Results.path)
+
+        mkdir(P.Results.path);
+
+    end
 
 
     try

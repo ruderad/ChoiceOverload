@@ -55,7 +55,9 @@ T.Acquisition.EEG.active = false;
 T.Acquisition.EyeTracker.requested = ...
     P.Acquisition.EyeTracker.enabled;
 
-
+T.Acquisition.EyeTracker.connected = false;
+T.Acquisition.EyeTracker.calibrated = false;
+T.Acquisition.EyeTracker.recording = false;
 
 
 %% ==============================================================
@@ -87,44 +89,45 @@ end
 
 
 %% ==============================================================
-% EEG
+% Hardware and Logger Initialization
 % ==============================================================
 
-if T.Acquisition.EEG.requested
+try
+
+    if T.Acquisition.EEG.requested
+
+        T.Acquisition.EEG = initializeEEG(P);
+        T.Acquisition.EEG.requested = true;
+
+    end
 
 
-    T.Acquisition.EEG = initializeEEG(P);
+    if T.Acquisition.EyeTracker.requested
 
+        T.Acquisition.EyeTracker = ...
+            initializeEyeTracker( ...
+                P, ...
+                T, ...
+                Subject);
+
+        T.Acquisition.EyeTracker.requested = true;
+
+    end
+
+
+    T = startEventLogger( ...
+        P, ...
+        T, ...
+        Subject);
+
+catch ME
+
+    % Roll back hardware that was opened before a later backend failed.
+    T = cleanupAcquisition(P, T);
+
+    rethrow(ME);
 
 end
-
-
-%% ==============================================================
-% Eye Tracker
-% ==============================================================
-
-if T.Acquisition.EyeTracker.requested
-
-
-    T.Acquisition.EyeTracker = ...
-        initializeEyeTracker( ...
-            P, ...
-            T, ...
-            Subject);
-
-
-end
-
-
-%% ==============================================================
-% Event Logger
-% ==============================================================
-
-T = startEventLogger( ...
-    P, ...
-    T, ...
-    Subject);
-
 
 end
 
