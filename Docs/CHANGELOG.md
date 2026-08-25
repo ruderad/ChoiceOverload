@@ -398,7 +398,7 @@ route.
 - perform synchronization testing
 
 
-## V0.3.1 - Validation System Implementation
+## V0.3.1 - Validation System Implementation + EEG Integration
 
 ### Added
 
@@ -406,6 +406,30 @@ route.
 - Implemented structured event parsing through `parseEventLog.m`.
 - Refactored validator architecture to operate on parsed experiment objects instead of raw TSV files.
 - Added validation reporting through `validateEventLog.m`.
+- Implemented EEG serial trigger backend.
+- Added configurable EEG acquisition parameters:
+  - serial port
+  - baud rate
+  - data bits
+- Added EEG trigger initialization and cleanup.
+- Added hardware trigger validation using serial interface.
+- Updated event codebook for 1–63 trigger range.
+
+
+### Changed
+
+- Questionnaire event markers remapped from 100–108 to 45–53.
+- EEG trigger validation now reflects hardware limitations.
+- Acquisition system now supports real EEG marker transmission.
+
+### Validated
+
+- EEG trigger transmission tested with real hardware.
+- Preference Rating events verified.
+- Choice events verified.
+- Exposure condition markers verified.
+
+
 
 ### Validation Features
 
@@ -434,5 +458,7 @@ route.
 - Separated event reconstruction from validation logic.
 - Parser is now responsible for determining what happened.
 - Validator is responsible for determining whether execution was correct.
+
+
 
 

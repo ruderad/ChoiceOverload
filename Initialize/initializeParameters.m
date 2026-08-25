@@ -446,7 +446,7 @@ nQuestions = ...
     P.Questionnaire.nQuestions;
 
 
-questionStartCode = 100;
+questionStartCode = 45;
 
 
 P.Events.Questionnaire.onset = ...

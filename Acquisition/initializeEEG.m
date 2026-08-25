@@ -27,7 +27,7 @@ instrreset;
 
 EEG.serial = serial( ...
     P.Acquisition.EEG.port, ...
-    'BaudRate',P.acquisition.EEG.BaudRate, ...
+    'BaudRate',P.Acquisition.EEG.BaudRate, ...
     'DataBits',P.Acquisition.EEG.DataBits);
 
 
@@ -36,6 +36,9 @@ EEG.serial = serial( ...
 % ---------------------------------------------------------------
 
 fopen(EEG.serial);
+
+% display port status
+disp(EEG.serial.Status)
 
 
 %% --------------------------------------------------------------
