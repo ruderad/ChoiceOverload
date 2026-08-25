@@ -123,7 +123,7 @@ try
 
     %% Cleanup Acquisition
 
-    cleanupAcquisition(P, T);
+    T = cleanupAcquisition(P, T);
 
 
     %% Cleanup Psychtoolbox
