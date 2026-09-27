@@ -249,7 +249,7 @@ P.Choice.Layout.fixationCrossWidth  = 3;
 P.Choice.Highlight.hoverColor    = [255 255 0];   % Yellow
 P.Choice.Highlight.selectedColor = [0 255 0];     % Green
 
-P.Choice.Highlight.borderWidth = 10;
+P.Choice.Highlight.borderWidth = 7;
 
 % How long the green selection confirmation remains visible
 P.Choice.Highlight.feedbackDuration = 0.25;
@@ -260,7 +260,7 @@ P.Choice.fixationDuration       = 1.0;
 P.Choice.exposureDuration       = 8.0;
 P.Choice.maskDuration           = 0.5;
 P.Choice.choiceFixationDuration = 1.0;
-P.Choice.choiceDuration         = 3.0;
+P.Choice.choiceDuration         = 6.0;
 
 %% ==============================================================
 %  Questionnaire
