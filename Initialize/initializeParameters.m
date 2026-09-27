@@ -139,9 +139,6 @@ instructionFolder = ...
 P.Instructions.welcome = ...
     fullfile(instructionFolder, 'welcome.png');
 
-P.Instructions.ratingPracticeFinished = ...
-    fullfile(instructionFolder, 'ratingPracticeFinished.png');
-
 P.Instructions.ratingRoundFinished = ...
     fullfile(instructionFolder, 'ratingRoundFinished.png');
 
@@ -160,7 +157,7 @@ P.Instructions.experimentFinished = ...
 
 P.Preference.nRounds = 2;
 
-P.Preference.nPracticeTrials = 5;
+P.Preference.nPracticeTrials = 10;
 P.Preference.nTrialsPerRound = 120;
 
 P.Preference.min   = 1;
@@ -252,7 +249,7 @@ P.Choice.Layout.fixationCrossWidth  = 3;
 P.Choice.Highlight.hoverColor    = [255 255 0];   % Yellow
 P.Choice.Highlight.selectedColor = [0 255 0];     % Green
 
-P.Choice.Highlight.borderWidth = 5;
+P.Choice.Highlight.borderWidth = 10;
 
 % How long the green selection confirmation remains visible
 P.Choice.Highlight.feedbackDuration = 0.25;

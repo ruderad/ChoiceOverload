@@ -22,16 +22,6 @@ practiceImages = imagePool(1:nPractice);
 mainImages = imagePool(nPractice + 1 : nPractice + nMain);
 
 
-%% ==============================================================
-%  Instructions
-%  ==============================================================
-
-showInstructionImage( ...
-    P.Instructions.welcome, ...
-    P, ...
-    T);
-
-
 
 %% ==============================================================
 %  Begin Main Task
@@ -42,14 +32,15 @@ showInstructionImage( ...
 
 runRatingPractice(practiceImages, P, T);
 
-% practice finished screen
-showInstructionImage( ...
-    P.Instructions.ratingPracticeFinished, ...
-    P, ...
-    T);
+
+
 %% ==============================================================
 % Main Rounds
 % ==============================================================
+showInstructionImage( ...
+    P.Instructions.welcome, ...
+    P, ...
+    T);
 
 for roundNumber = 1:P.Preference.nRounds
 
