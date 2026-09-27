@@ -198,7 +198,7 @@ WaitSecs( ...
 %% ==============================================================
 % Exposure
 % ==============================================================
-
+HideCursor;
 % No response highlighting is shown during exposure.
 
 Screen( ...

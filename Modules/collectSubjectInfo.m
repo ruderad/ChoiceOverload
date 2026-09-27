@@ -3,6 +3,7 @@ function [Subject, aborted] = collectSubjectInfo()
 % collectSubjectInfo
 %
 % Experimenter form for entering participant information.
+% Compatible with MATLAB R2016a and later, Linux-safe.
 %
 % Outputs:
 %
@@ -10,31 +11,21 @@ function [Subject, aborted] = collectSubjectInfo()
 %   Subject.Age
 %   Subject.Sex
 %   Subject.Handedness
+%   Subject.Education
 %   Subject.BlockOrder
-%
-% BlockOrder options:
-%
-%   Auto
-%       Block order will later be counterbalanced automatically
-%       from the participant ID.
-%
-%   Ascending
-%       Manual override.
-%
-%   Descending
-%       Manual override.
 %
 % aborted = true if Cancel is pressed.
 
 
 %% ==============================================================
 % Default Output
-% ==============================================================
+%% ==============================================================
 
 Subject.ID          = '';
 Subject.Age         = NaN;
 Subject.Sex         = '';
 Subject.Handedness  = '';
+Subject.Education   = '';
 Subject.BlockOrder  = 'Auto';
 
 aborted = true;
@@ -42,7 +33,7 @@ aborted = true;
 
 %% ==============================================================
 % Options
-% ==============================================================
+%% ==============================================================
 
 sexOptions = { ...
     'Male', ...
@@ -50,13 +41,18 @@ sexOptions = { ...
     'Other', ...
     'Prefer not to say'};
 
-
 handednessOptions = { ...
     'Right', ...
     'Left', ...
     'Ambidextrous', ...
     'Prefer not to say'};
 
+educationOptions = { ...
+    'Primary', ...
+    'Associate', ...
+    'Bachelor', ...
+    'Masters', ...
+    'Doctorate'};
 
 blockOrderOptions = { ...
     'Auto', ...
@@ -65,156 +61,161 @@ blockOrderOptions = { ...
 
 
 %% ==============================================================
-% Create Window
-% ==============================================================
+% Layout Constants
+%% ==============================================================
 
-fig = uifigure( ...
+figW       = 430;
+rowPitch   = 45;
+topY       = 310;
+labelX     = 45;
+labelW     = 100;
+fieldX     = 160;
+fieldW     = 220;
+labelH     = 22;
+fieldH     = 28;
+buttonH    = 30;
+buttonY    = 25;
+
+rowY = @(i) topY - (i - 1) * rowPitch;
+
+nRows   = 6;
+figH    = rowY(nRows) - 30 + 55;
+
+
+%% ==============================================================
+% Create Figure
+%% ==============================================================
+
+fig = figure( ...
     'Name', 'Participant Information', ...
-    'Position', [500 350 430 360], ...
+    'NumberTitle', 'off', ...
+    'MenuBar', 'none', ...
+    'ToolBar', 'none', ...
+    'Position', [500 350 figW figH], ...
     'Resize', 'off', ...
-    'WindowStyle', 'modal');
+    'Color', [0.94 0.94 0.94]);
 
 
 %% ==============================================================
 % Title
-% ==============================================================
+%% ==============================================================
 
-uilabel(fig, ...
-    'Text', 'Participant Information', ...
-    'FontSize', 16, ...
+uicontrol(fig, ...
+    'Style', 'text', ...
+    'String', 'Participant Information', ...
+    'FontSize', 14, ...
     'FontWeight', 'bold', ...
     'HorizontalAlignment', 'center', ...
-    'Position', [75 315 280 25]);
+    'BackgroundColor', get(fig, 'Color'), ...
+    'Position', [75 topY+50 280 25]);
 
 
 %% ==============================================================
-% Subject ID
-% ==============================================================
+% Row Helpers
+%% ==============================================================
 
-uilabel(fig, ...
-    'Text', 'Subject ID:', ...
-    'HorizontalAlignment', 'right', ...
-    'Position', [45 265 100 22]);
+    function h = makeLabel(txt, i)
+        h = uicontrol(fig, ...
+            'Style', 'text', ...
+            'String', txt, ...
+            'HorizontalAlignment', 'right', ...
+            'BackgroundColor', get(fig, 'Color'), ...
+            'Position', [labelX rowY(i) labelW labelH]);
+    end
 
+    function h = makeEdit(i)
+        h = uicontrol(fig, ...
+            'Style', 'edit', ...
+            'BackgroundColor', 'white', ...
+            'HorizontalAlignment', 'left', ...
+            'Position', [fieldX rowY(i)-3 fieldW fieldH]);
+    end
 
-idField = uieditfield(fig, ...
-    'text', ...
-    'Position', [160 262 220 28]);
+    function h = makeDropdown(items, i)
+        h = uicontrol(fig, ...
+            'Style', 'popupmenu', ...
+            'String', items, ...
+            'Value', 1, ...
+            'BackgroundColor', 'white', ...
+            'Position', [fieldX rowY(i)-3 fieldW fieldH]);
+    end
 
 
 %% ==============================================================
-% Age
-% ==============================================================
-
-uilabel(fig, ...
-    'Text', 'Age:', ...
-    'HorizontalAlignment', 'right', ...
-    'Position', [45 220 100 22]);
-
-
-ageField = uieditfield(fig, ...
-    'text', ...
-    'Position', [160 217 220 28]);
-
-
+% Fields
 %% ==============================================================
-% Sex
-% ==============================================================
 
-uilabel(fig, ...
-    'Text', 'Sex:', ...
-    'HorizontalAlignment', 'right', ...
-    'Position', [45 175 100 22]);
+% Row 1: Subject ID
+makeLabel('Subject ID:', 1);
+idField = makeEdit(1);
 
+% Row 2: Age
+makeLabel('Age:', 2);
+ageField = makeEdit(2);
 
-sexField = uidropdown(fig, ...
-    'Items', sexOptions, ...
-    'Value', sexOptions{1}, ...
-    'Position', [160 172 220 28]);
+% Row 3: Sex
+makeLabel('Sex:', 3);
+sexField = makeDropdown(sexOptions, 3);
 
+% Row 4: Handedness
+makeLabel('Handedness:', 4);
+handField = makeDropdown(handednessOptions, 4);
 
-%% ==============================================================
-% Handedness
-% ==============================================================
+% Row 5: Education
+makeLabel('Education:', 5);
+educationField = makeDropdown(educationOptions, 5);
 
-uilabel(fig, ...
-    'Text', 'Handedness:', ...
-    'HorizontalAlignment', 'right', ...
-    'Position', [45 130 100 22]);
-
-
-handField = uidropdown(fig, ...
-    'Items', handednessOptions, ...
-    'Value', handednessOptions{1}, ...
-    'Position', [160 127 220 28]);
-
-
-%% ==============================================================
-% Block Order
-% ==============================================================
-
-uilabel(fig, ...
-    'Text', 'Block Order:', ...
-    'HorizontalAlignment', 'right', ...
-    'Position', [45 85 100 22]);
-
-
-blockOrderField = uidropdown(fig, ...
-    'Items', blockOrderOptions, ...
-    'Value', 'Auto', ...
-    'Position', [160 82 220 28]);
+% Row 6: Block Order
+makeLabel('Block Order:', 6);
+blockOrderField = makeDropdown(blockOrderOptions, 6);
 
 
 %% ==============================================================
 % Buttons
-% ==============================================================
+%% ==============================================================
 
-uibutton(fig, ...
-    'Text', 'Cancel', ...
-    'Position', [45 25 100 30], ...
-    'ButtonPushedFcn', @cancelCallback);
+uicontrol(fig, ...
+    'Style', 'pushbutton', ...
+    'String', 'Cancel', ...
+    'Position', [45 buttonY 100 buttonH], ...
+    'Callback', @cancelCallback);
 
-
-uibutton(fig, ...
-    'Text', 'Start Experiment', ...
+uicontrol(fig, ...
+    'Style', 'pushbutton', ...
+    'String', 'Start Experiment', ...
     'FontWeight', 'bold', ...
-    'Position', [230 25 150 30], ...
-    'ButtonPushedFcn', @startCallback);
+    'Position', [230 buttonY 150 buttonH], ...
+    'Callback', @startCallback);
 
 
 %% ==============================================================
 % Wait for Experimenter
-% ==============================================================
+%% ==============================================================
 
 uiwait(fig);
 
 
 %% ==============================================================
 % Start Callback
-% ==============================================================
+%% ==============================================================
 
     function startCallback(~, ~)
 
-        Subject.ID = strtrim(idField.Value);
+        Subject.ID = strtrim(get(idField, 'String'));
 
-        Subject.Age = ...
-            str2double(ageField.Value);
+        Subject.Age = str2double(get(ageField, 'String'));
 
-        Subject.Sex = ...
-            sexField.Value;
+        Subject.Sex = sexOptions{get(sexField, 'Value')};
 
-        Subject.Handedness = ...
-            handField.Value;
+        Subject.Handedness = handednessOptions{get(handField, 'Value')};
 
-        Subject.BlockOrder = ...
-            blockOrderField.Value;
+        Subject.Education = educationOptions{get(educationField, 'Value')};
 
+        Subject.BlockOrder = blockOrderOptions{get(blockOrderField, 'Value')};
 
         aborted = false;
 
-
         uiresume(fig);
-
         delete(fig);
 
     end
@@ -222,18 +223,15 @@ uiwait(fig);
 
 %% ==============================================================
 % Cancel Callback
-% ==============================================================
+%% ==============================================================
 
     function cancelCallback(~, ~)
 
         aborted = true;
 
-
         uiresume(fig);
-
         delete(fig);
 
     end
-
 
 end
