@@ -74,6 +74,13 @@ P.Acquisition.EyeTracker.enabled = true;
 P.Acquisition.EyeTracker.Acquisition      = true;
 P.Acquisition.EyeTracker.PreferenceRating = true;
 P.Acquisition.EyeTracker.Choice           = true;
+%% ==============================================================
+% Audio
+% ===============================================================
+P.Audio.freq            = 48000;   % sample rate (Hz) — match your device
+P.Audio.beepFrequency   = 800;     % tone pitch (Hz) — clear, non-harsh
+P.Audio.beepDuration    = 0.05;    % tone length (s) — short cue, not intrusive
+P.Audio.beepAmplitude   = 0.3;     % 0–1 — conservative to avoid startling
 
 %% ==============================================================
 %  Screen

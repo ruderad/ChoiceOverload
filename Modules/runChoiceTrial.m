@@ -448,6 +448,10 @@ drawResponseHighlight( ...
     P.Choice.Highlight.hoverColor, ...
     P.Choice.Highlight.borderWidth);
 
+% Play a beep at the onset of choice phase 
+if T.audio.enabled
+    PsychPortAudio('Start', T.audio.handle, 1, 0, 0);
+end
 
 %% --------------------------------------------------------------
 % Response Onset Flip
