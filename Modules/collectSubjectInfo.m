@@ -66,7 +66,7 @@ blockOrderOptions = { ...
 
 figW       = 430;
 rowPitch   = 45;
-topY       = 310;
+topY       = 310;         % y of the first field row (from bottom)
 labelX     = 45;
 labelW     = 100;
 fieldX     = 160;
@@ -78,20 +78,24 @@ buttonY    = 25;
 
 rowY = @(i) topY - (i - 1) * rowPitch;
 
-nRows   = 6;
-figH    = rowY(nRows) - 30 + 55;
+nRows = 6;
+figH  = topY + 75;        % enough room for title above + buttons below
 
 
 %% ==============================================================
-% Create Figure
+% Create Figure (centered on screen)
 %% ==============================================================
+
+screenSize = get(0, 'ScreenSize');   % [left bottom width height]
+figX = round((screenSize(3) - figW) / 2);
+figY = round((screenSize(4) - figH) / 2);
 
 fig = figure( ...
     'Name', 'Participant Information', ...
     'NumberTitle', 'off', ...
     'MenuBar', 'none', ...
     'ToolBar', 'none', ...
-    'Position', [500 350 figW figH], ...
+    'Position', [figX figY figW figH], ...
     'Resize', 'off', ...
     'Color', [0.94 0.94 0.94]);
 
