@@ -128,7 +128,7 @@ try
 
     %% Cleanup Psychtoolbox
 
-    cleanupTask();
+    cleanupTask(T);
 
 
     %% Save Results
@@ -147,7 +147,7 @@ catch ME
         T);
 
 
-    cleanupTask();
+    cleanupTask(T);
 
 
     rethrow(ME);
